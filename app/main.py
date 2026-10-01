@@ -11,7 +11,7 @@ PUERTO = 8765
 
 
 def iniciar_servidor(host: str, port: int) -> uvicorn.Server:
-    server = uvicorn.Server(uvicorn.Config(create_app(), host=host, port=port, log_level="info"))
+    server = uvicorn.Server(uvicorn.Config(create_app(tareas=True), host=host, port=port, log_level="info"))
     threading.Thread(target=server.run, daemon=True).start()
     return server
 
@@ -40,7 +40,7 @@ def main() -> None:
     else:
         url = f"http://127.0.0.1:{args.port}"
         if args.sin_ventana:
-            uvicorn.run(create_app(), host=args.host, port=args.port)
+            uvicorn.run(create_app(tareas=True), host=args.host, port=args.port)
             return
         iniciar_servidor(args.host, args.port)
     esperar_servidor(url)

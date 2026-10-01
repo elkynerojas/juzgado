@@ -5,10 +5,12 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import Engine
 
-from app.server.api import admin, auth, config, documentos, procesos, usuarios
+from app.server.api import admin, auth, config, documentos, procesos, respaldo, usuarios
+from app.server.core.settings import dir_respaldos
 from app.server.db.migrate import actualizar
 from app.server.db.seeds import sembrar, sembrar_roles
 from app.server.db.session import crear_engine, crear_sesiones
+from app.server.services import programador
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
@@ -23,7 +25,7 @@ el cual se agrega al expediente para lo de su cargo. Documento de prueba de impr
 <p>Chinácota, 30 de septiembre de 2026.</p></body></html>"""
 
 
-def create_app(engine: Engine | None = None) -> FastAPI:
+def create_app(engine: Engine | None = None, respaldos: Path | None = None, tareas: bool = False) -> FastAPI:
     engine = engine or crear_engine()
     actualizar(engine)
     sesiones = crear_sesiones(engine)
@@ -34,6 +36,9 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     app = FastAPI(title="Control de Procesos", docs_url="/api/docs", openapi_url="/api/openapi.json")
     app.state.sesiones = sesiones
     app.state.intentos = {}
+    app.state.dir_respaldos = respaldos or dir_respaldos()
+    if tareas:
+        programador.iniciar(sesiones, app.state.dir_respaldos)
 
     @app.get("/api/health")
     def health():
@@ -43,7 +48,7 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     def spike_doc():
         return DOC_PRUEBA
 
-    for modulo in (auth, usuarios, procesos, config, documentos, admin):
+    for modulo in (auth, usuarios, procesos, config, documentos, admin, respaldo):
         app.include_router(modulo.r)
 
     app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

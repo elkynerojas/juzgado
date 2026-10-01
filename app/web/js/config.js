@@ -2,11 +2,12 @@ import { api } from './api.js';
 import { S, puede, cargarCfg, cat, guardarTema } from './estado.js';
 import { $, esc, fmt, toast, delegar, opciones, elegirImagen } from './util.js';
 import { formModal } from './modal.js';
+import { cargarResp, cfgResp, accionesResp } from './respaldo.js';
 
 const TABS = [
   ['cat', 'Catálogos', 'config.catalogos'], ['term', 'Términos', 'config.terminos'], ['rutas', 'Rutas procesales', 'config.rutas'],
   ['cal', 'Calendario judicial', 'config.calendario'], ['plt', 'Plantillas y firma', 'config.plantillas'], ['jz', 'Datos del juzgado', 'config.juzgado'],
-  ['look', 'Apariencia', null], ['usr', 'Usuarios', 'usuarios.gestionar'], ['rol', 'Roles y permisos', 'roles.gestionar'], ['aud', 'Auditoría', 'auditoria.ver'],
+  ['resp', 'Respaldos', 'respaldo.exportar'], ['look', 'Apariencia', null], ['usr', 'Usuarios', 'usuarios.gestionar'], ['rol', 'Roles y permisos', 'roles.gestionar'], ['aud', 'Auditoría', 'auditoria.ver'],
 ];
 const ORIGENES = ['Memorial', 'Vencimiento de término', 'Providencia (auto/sentencia)', 'Respuesta externa', 'Oficiosa'];
 const CAMPOS_PLANTILLA = 'Campos: {{radicado}} {{radicado_full}} {{proceso}} {{demandante}} {{demandado}} {{cuaderno}} {{descripcion}} {{materia}} {{termino}} {{fecha_inicio}} {{vencimiento}} {{motivo_pase}} {{fecha}} {{fecha_letras}} {{ciudad}}';
@@ -21,6 +22,7 @@ export async function renderConfig() {
   await cargarCfg();
   if (S.cfgTab === 'usr') [usuarios, roles] = await Promise.all([api.get('/api/usuarios'), api.get('/api/roles')]);
   if (S.cfgTab === 'rol') [roles, permisos] = await Promise.all([api.get('/api/roles'), api.get('/api/permisos')]);
+  if (S.cfgTab === 'resp') await cargarResp();
   if (S.cfgTab === 'aud') auditoria = await api.get('/api/auditoria', Object.assign({ limite: 200 }, audFiltro));
   let h = '<h2 style="margin:12px 2px 4px">⚙️ Configuración del sistema</h2><div class="chips">';
   tabs.forEach(t => { h += '<div class="chip ' + (S.cfgTab === t[0] ? 'active' : '') + '" data-acc="tab" data-t="' + t[0] + '">' + t[1] + '</div>'; });
@@ -261,7 +263,7 @@ function cambios(x) {
 }
 
 function cfgAud() {
-  const entidades = ['proceso', 'actuacion', 'usuario', 'rol', 'catalogo', 'termino', 'ruta', 'ruta_paso', 'tipo_ruta', 'cal_suspension', 'cal_dia', 'festivo', 'plantilla', 'firmante', 'juzgado', 'datos'];
+  const entidades = ['proceso', 'actuacion', 'usuario', 'rol', 'catalogo', 'termino', 'ruta', 'ruta_paso', 'tipo_ruta', 'cal_suspension', 'cal_dia', 'festivo', 'plantilla', 'firmante', 'juzgado', 'datos', 'respaldo'];
   let h = '<div class="card"><div class="filterbar"><select id="audEnt" style="max-width:220px">' + opciones(entidades, audFiltro.entidad, 'Todas las entidades') + '</select>'
     + '<input id="audUsr" placeholder="Usuario…" value="' + esc(audFiltro.usuario) + '" style="max-width:180px"><button class="btn sm" data-acc="audFiltrar">Filtrar</button>'
     + '<span class="tiny muted">' + auditoria.filas.length + ' de ' + auditoria.total + ' registro(s), del más reciente al más antiguo.</span></div>';
@@ -274,7 +276,7 @@ function cfgAud() {
   return h + '</tbody></table></div></div>';
 }
 
-const VISTAS = { cat: cfgCat, term: cfgTerm, rutas: cfgRutas, cal: cfgCal, plt: cfgPlt, jz: cfgJz, look: cfgLook, usr: cfgUsr, rol: cfgRol, aud: cfgAud };
+const VISTAS = { cat: cfgCat, term: cfgTerm, rutas: cfgRutas, cal: cfgCal, plt: cfgPlt, jz: cfgJz, look: cfgLook, usr: cfgUsr, rol: cfgRol, aud: cfgAud, resp: cfgResp };
 
 const porId = (lista, d) => lista.find(x => String(x.id) === d.dataset.id) || null;
 const fechaDe = id => { const v = $('#' + id).value; if (!v) toast('Elija una fecha'); return v; };
@@ -326,6 +328,8 @@ const ACCIONES = {
   rolEditar: d => editarRol(porId(roles, d)),
   audFiltrar: () => { audFiltro = { entidad: $('#audEnt').value, usuario: $('#audUsr').value.trim() }; renderConfig(); },
 };
+
+Object.assign(ACCIONES, accionesResp(recargar));
 
 /* controles que no son clics */
 function enlazarCampos() {

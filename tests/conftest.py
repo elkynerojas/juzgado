@@ -49,7 +49,7 @@ ADMIN = {"usuario": "admin", "nombre": "Administradora", "password": "clave-segu
 @pytest.fixture
 def app(tmp_path):
     engine = crear_engine(tmp_path / "api.db")
-    yield create_app(engine)
+    yield create_app(engine, respaldos=tmp_path / "backups")
     engine.dispose()
 
 

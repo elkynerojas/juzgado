@@ -21,6 +21,9 @@
       <div class="menu">
         <button class="btn ghost sm" id="btnMenu">Men&uacute; &#9662;</button>
         <div class="menu-pop" id="menuPop">
+          <button id="miExport" data-permiso="respaldo.exportar">&#11015; Exportar respaldo (.json)</button>
+          <button id="miImport" data-permiso="respaldo.restaurar">&#11014; Restaurar respaldo</button>
+          <div class="sep"></div>
           <button id="miConfig">&#9881;&#65039; Configuraci&oacute;n del sistema</button>
           <div class="sep"></div>
           <button id="miEjemplos" data-permiso="respaldo.restaurar">Cargar datos de ejemplo</button>
@@ -160,6 +163,7 @@
 </div></div>
 
 <input type="file" id="fileImagen" accept="image/*" style="display:none">
+<input type="file" id="fileJson" accept="application/json,.json" style="display:none">
 <div class="toast" id="toast"></div>
 <script type="module" src="/js/main.js"></script>
 </body>

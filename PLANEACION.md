@@ -8,7 +8,7 @@
 | 1. Dominio y BD | Hecha | Reglas en Python verificadas contra el JS original; 18 tablas, migración inicial y semillas. |
 | 2. API | Hecha | 67 endpoints: sesión, usuarios y roles, procesos, actuaciones, tablero, paquetes, configuración, documentos, auditoría. Se exploran en `/api/docs`. |
 | 3. Frontend | Hecha | Pantallas originales conectadas a la API, ingreso, usuarios, roles y auditoría. Probado en navegador; falta probar impresión y exportación dentro de la ventana en Windows. |
-| 4. Respaldos | Pendiente | |
+| 4. Respaldos | Hecha | Exportar y restaurar JSON, formato del HTML original, respaldo automático diario con rotación y respaldo previo a cada restauración. |
 | 5. Escritorio y empaquetado | Pendiente | |
 | 6. Verificación final | Pendiente | |
 

@@ -1,15 +1,16 @@
 import { $, $$, esc, opciones, toast, abrir, cerrar } from './util.js';
 
 /* Formulario genérico en modal.
-   campos: [{k, label, tipo: text|number|password|date|textarea|select|checkbox|checks, valor, opciones, lista, hint, filas}]
+   campos: [{k, label, tipo: text|number|password|date|textarea|select|checkbox|checks|nota, valor, opciones, lista, hint, filas}]
    guardar(valores) y eliminar() pueden lanzar: el modal queda abierto y se muestra el error. */
-export function formModal({ titulo, campos, guardar, eliminar, ancho }) {
+export function formModal({ titulo, campos, guardar, eliminar, ancho, textoGuardar }) {
   $('#formTitle').textContent = titulo;
   $('#formModal').style.maxWidth = ancho || '';
   $('#formBody').innerHTML = campos.map(campoHTML).join('');
   const del = $('#formDel');
   del.style.display = eliminar ? '' : 'none';
   del.onclick = () => ejecutar(eliminar);
+  $('#formSave').textContent = textoGuardar || 'Guardar';
   $('#formSave').onclick = () => ejecutar(() => guardar(leer(campos)));
   abrir('ovForm');
   const primero = $('#formBody input:not([type=checkbox]), #formBody textarea');
@@ -23,6 +24,7 @@ async function ejecutar(fn) {
 function campoHTML(c) {
   const id = 'f_' + c.k, v = c.valor == null ? '' : c.valor;
   let ctl;
+  if (c.tipo === 'nota') return '<div class="previewbox" style="margin:0 0 12px">' + esc(v) + '</div>';
   if (c.tipo === 'select') ctl = '<select id="' + id + '">' + opciones(c.opciones, String(v)) + '</select>';
   else if (c.tipo === 'textarea') ctl = '<textarea id="' + id + '" rows="' + (c.filas || 6) + '">' + esc(v) + '</textarea>';
   else if (c.tipo === 'checkbox') return '<div class="field"><label><input type="checkbox" id="' + id + '"' + (v ? ' checked' : '') + ' style="width:auto;margin-right:6px">' + esc(c.label) + '</label></div>';
@@ -43,6 +45,7 @@ function campoHTML(c) {
 function leer(campos) {
   const v = {};
   campos.forEach(c => {
+    if (c.tipo === 'nota') return;
     const el = $('#f_' + c.k);
     if (c.tipo === 'checkbox') v[c.k] = el.checked;
     else if (c.tipo === 'checks') v[c.k] = $$('input:checked', el).map(x => x.value);

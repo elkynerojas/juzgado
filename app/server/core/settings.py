@@ -18,3 +18,7 @@ def dir_datos() -> Path:
 
 def ruta_bd() -> Path:
     return dir_datos() / "control_procesos.db"
+
+
+def dir_respaldos() -> Path:
+    return dir_datos() / "backups"

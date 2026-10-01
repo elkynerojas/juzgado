@@ -7,6 +7,7 @@ import { renderConfig } from './config.js';
 import { openProc, iniciarFormularios } from './formularios.js';
 import { iniciarDocs } from './docs.js';
 import { mostrarLogin, cambiarPassword, iniciarAuth } from './auth.js';
+import { exportarRespaldo, restaurarDesdeArchivo } from './respaldo.js';
 
 const VISTAS = ['tablero', 'procesos', 'gestion', 'config', 'detalle'];
 const RENDER = { tablero: renderTablero, procesos: renderProcesos, gestion: renderGestion, config: renderConfig };
@@ -66,13 +67,15 @@ function enlazar() {
   const menu = (id, fn) => { $('#' + id).onclick = () => { $('#menuPop').classList.remove('open'); return fn(); }; };
   $('#btnMenu').onclick = () => $('#menuPop').classList.toggle('open');
   menu('miConfig', () => nav.ir('config'));
+  menu('miExport', exportarRespaldo);
+  menu('miImport', restaurarDesdeArchivo);
   menu('miEjemplos', async () => {
     const t = await api.get('/api/tablero');
     if (t.procesos && !confirm('Esto reemplazará los datos actuales por los de ejemplo. ¿Continuar?')) return;
     await cargarEjemplos();
   });
   menu('miVaciar', async () => {
-    if (!confirm('¿Borrar TODOS los procesos y actuaciones? Esta acción no se puede deshacer.')) return;
+    if (!confirm('¿Borrar TODOS los procesos y actuaciones? Exporte un respaldo antes.')) return;
     await api.post('/api/datos/vaciar'); toast('Datos borrados'); await nav.ir('tablero');
   });
   menu('miTema', async () => {
