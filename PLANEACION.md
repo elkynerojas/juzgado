@@ -1,5 +1,19 @@
 # Planeación: Control de Procesos (Juzgado) — app de escritorio Python multiusuario
 
+## Estado
+
+| Fase | Estado | Notas |
+|---|---|---|
+| 0. Base y prueba de concepto | Hecha | Falta comprobar en Windows la impresión/PDF y el guardado de archivos dentro de WebView2. |
+| 1. Dominio y BD | Hecha | Reglas en Python verificadas contra el JS original; 18 tablas, migración inicial y semillas. |
+| 2. API | Hecha | 67 endpoints: sesión, usuarios y roles, procesos, actuaciones, tablero, paquetes, configuración, documentos, auditoría. Se exploran en `/api/docs`. |
+| 3. Frontend | Pendiente | |
+| 4. Respaldos | Pendiente | |
+| 5. Escritorio y empaquetado | Pendiente | |
+| 6. Verificación final | Pendiente | |
+
+Cómo ver el avance: `uv run pytest` (pruebas) y `uv run control-procesos` (app).
+
 ## Contexto
 
 Hoy existe `control_procesos.html`: una SPA de un solo archivo (1036 líneas, JS vanilla) que guarda todo en `localStorage` como un único objeto `DB = {procesos, actuaciones, config, plantillas}`. Es monousuario y los datos viven en un navegador.

@@ -3,6 +3,12 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import Engine
+
+from app.server.api import admin, auth, config, documentos, procesos, usuarios
+from app.server.db.migrate import actualizar
+from app.server.db.seeds import sembrar, sembrar_roles
+from app.server.db.session import crear_engine, crear_sesiones
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
@@ -17,8 +23,17 @@ el cual se agrega al expediente para lo de su cargo. Documento de prueba de impr
 <p>Chinácota, 30 de septiembre de 2026.</p></body></html>"""
 
 
-def create_app() -> FastAPI:
+def create_app(engine: Engine | None = None) -> FastAPI:
+    engine = engine or crear_engine()
+    actualizar(engine)
+    sesiones = crear_sesiones(engine)
+    with sesiones() as s:
+        sembrar(s)
+        sembrar_roles(s)
+
     app = FastAPI(title="Control de Procesos", docs_url="/api/docs", openapi_url="/api/openapi.json")
+    app.state.sesiones = sesiones
+    app.state.intentos = {}
 
     @app.get("/api/health")
     def health():
@@ -27,6 +42,9 @@ def create_app() -> FastAPI:
     @app.get("/spike/doc", response_class=HTMLResponse)
     def spike_doc():
         return DOC_PRUEBA
+
+    for modulo in (auth, usuarios, procesos, config, documentos, admin):
+        app.include_router(modulo.r)
 
     app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
     return app

@@ -1,0 +1,938 @@
+{
+ "festivos": [
+  "2026-01-01",
+  "2026-01-12",
+  "2026-03-23",
+  "2026-03-30",
+  "2026-04-02",
+  "2026-04-03",
+  "2026-05-01",
+  "2026-05-18",
+  "2026-06-08",
+  "2026-06-15",
+  "2026-06-29",
+  "2026-07-20",
+  "2026-08-07",
+  "2026-08-17",
+  "2026-10-12",
+  "2026-11-02",
+  "2026-11-16",
+  "2026-12-08",
+  "2026-12-25",
+  "2027-01-01",
+  "2027-01-11",
+  "2027-03-22",
+  "2027-03-25",
+  "2027-03-26",
+  "2027-05-01",
+  "2027-05-10",
+  "2027-05-31",
+  "2027-06-07",
+  "2027-06-14",
+  "2027-07-05",
+  "2027-07-20",
+  "2027-08-07",
+  "2027-08-16",
+  "2027-10-18",
+  "2027-11-01",
+  "2027-11-15",
+  "2027-12-08",
+  "2027-12-25",
+  "2028-01-01",
+  "2028-01-10",
+  "2028-03-20",
+  "2028-04-13",
+  "2028-04-14",
+  "2028-05-01",
+  "2028-05-29",
+  "2028-06-19",
+  "2028-06-26",
+  "2028-07-03",
+  "2028-07-20",
+  "2028-08-07",
+  "2028-08-21",
+  "2028-10-16",
+  "2028-11-06",
+  "2028-11-13",
+  "2028-12-08",
+  "2028-12-25",
+  "2029-01-01",
+  "2029-01-08",
+  "2029-03-19",
+  "2029-03-29",
+  "2029-03-30",
+  "2029-05-01",
+  "2029-05-14",
+  "2029-06-04",
+  "2029-06-11",
+  "2029-07-02",
+  "2029-07-20",
+  "2029-08-07",
+  "2029-08-20",
+  "2029-10-15",
+  "2029-11-05",
+  "2029-11-12",
+  "2029-12-08",
+  "2029-12-25",
+  "2030-01-01",
+  "2030-01-07",
+  "2030-03-25",
+  "2030-04-18",
+  "2030-04-19",
+  "2030-05-01",
+  "2030-06-03",
+  "2030-06-24",
+  "2030-07-01",
+  "2030-07-20",
+  "2030-08-07",
+  "2030-08-19",
+  "2030-10-14",
+  "2030-11-04",
+  "2030-11-11",
+  "2030-12-08",
+  "2030-12-25"
+ ],
+ "terminos": [
+  {
+   "nombre": "Traslado de la demanda",
+   "dias": 20,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado demanda verbal sumario",
+   "dias": 10,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado Excepciones previas - Proceso verbal",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado Excepciones de Mérito - Proceso Verbal",
+   "dias": 5,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado Excepciones de Mérito - Proceso Verbal Sumario",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado Excepciones de Mérito - Proceso Ejecutivo",
+   "dias": 10,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado Liquidación de crédito",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado Liquidación de costas",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado Recurso de Reposición",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado Avalúos",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado Transacción",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado escrito de nulidad",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado solicitud REDAM",
+   "dias": 5,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Objeción dictamen pericial",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Estudio de admisibilidad",
+   "dias": 30,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "Estudio demanda de reconvención",
+   "dias": 10,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "Para subsanar demanda",
+   "dias": 5,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Resolver solicitud de las partes",
+   "dias": 10,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "Traslado general de escritos o solicitudes",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "15 días para entenderse surtido el Emplazamiento",
+   "dias": 15,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "1 mes contenido de la valla en Registro Nacional Procesos de Pertenencia",
+   "dias": 30,
+   "habil": false,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "1 día para cumplir requerimiento",
+   "dias": 1,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "5 días para cumplir requerimiento",
+   "dias": 5,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "30 días para cumplir requerimiento",
+   "dias": 30,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "1 año para posible desistimiento tácito",
+   "dias": 365,
+   "habil": false,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "Ejecutoria de providencia notificada por estado",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "Solicitud aclaración sentencia",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Solicitud corrección sentencia",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Solicitud adición sentencia",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado excepciones al mandamiento de pago",
+   "dias": 10,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Prestar caución ordenada",
+   "dias": 10,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Cautelar"
+  },
+  {
+   "nombre": "Traslado solicitud medida cautelar",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Cautelar"
+  },
+  {
+   "nombre": "Reposición contra autos (interposición)",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Recurso"
+  },
+  {
+   "nombre": "Apelación de autos (interposición)",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Recurso"
+  },
+  {
+   "nombre": "Apelación de sentencia (interposición)",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Recurso"
+  },
+  {
+   "nombre": "Ejecutoria para sustentar apelación",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Recurso"
+  },
+  {
+   "nombre": "Queja (reposición previa)",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Recurso"
+  },
+  {
+   "nombre": "Expedir copias para el recurso de queja",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Recurso"
+  },
+  {
+   "nombre": "Traslado contestación de reconvención",
+   "dias": 10,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Traslado del dictamen pericial",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Probatorio"
+  },
+  {
+   "nombre": "Ejecutoria de auto que decreta pruebas",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Ejecutoria"
+  },
+  {
+   "nombre": "Traslado liquidación de intereses",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Consignar para hacer postura en remate",
+   "dias": 1,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "Pago del saldo del remate",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "Notificación por aviso (se entiende surtida)",
+   "dias": 1,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "Comparecer tras notificación personal (aviso)",
+   "dias": 5,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Control"
+  },
+  {
+   "nombre": "Ejecutoria de sentencia",
+   "dias": 3,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Ejecutoria"
+  },
+  {
+   "nombre": "Traslado demanda de familia (verbal sumario)",
+   "dias": 10,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  },
+  {
+   "nombre": "Oposición a la adopción",
+   "dias": 5,
+   "habil": true,
+   "responsable": "",
+   "categoria": "Traslado"
+  }
+ ],
+ "asuntos": {
+  "civil": [
+   "ACCION DE SIMULACION",
+   "ACCION DIVISORIA",
+   "ACCION REIVINDICATORIA",
+   "AMPARO A LA PROPIEDAD",
+   "AVALUO DE PERJUICIOS",
+   "CANCELACIÓN, REPOSICIÓN Y REIVINDICACIÓN DE TITULOS VALORES",
+   "DECLARACION PERTENENCIA",
+   "PRESCRIPCIÓN ACCION HIPOTECARIA",
+   "EJECUTIVO HIPOTECARIO - PRENDARIO",
+   "EJECUTIVO MIXTO",
+   "EJECUTIVO POR SUMAS DE DINERO",
+   "EJECUTIVO SUSCRIBIR DOCUMENTO",
+   "EJECUTIVO POR OBLIGACION DE HACER",
+   "EJECUTIVO POR OBLIGACION DE DAR",
+   "EJECUTIVO POR OBLIGACION DE NO HACER",
+   "EJECUTIVO ALIMENTOS",
+   "LANZAMIENTO POR OCUPACION DE HECHO",
+   "MATRIMONIO",
+   "MONITORIO",
+   "NULIDAD ABSOLUTA DE ESCRITURA PUBLICA",
+   "NULIDAD RELATIVA DE CONTRATO",
+   "PERTURBACION DE LA POSESIÓN",
+   "RESOLUCION DE CONTRATO DE COMPRAVENTA",
+   "RESCISIÓN POR LESIÓN ENORME",
+   "RECONOCIMIENTO Y PAGO DE UNA DEUDA",
+   "VERBAL RESTITUCIÓN DE TENENCIA",
+   "DESLINDE Y AMOJONAMIENTO",
+   "SERVIDUMBRE",
+   "RESPONSABILIDAD CIVIL CONTRACTUAL",
+   "RESPONSABILIDAD CIVIL EXTRACONTRACTUAL",
+   "RESTITUCION DE INMUEBLE ARRENDADO",
+   "REGULACIÓN Y PAGO DE MEJORAS",
+   "SUCESIÓN",
+   "INSPECCIÓN JUDICIAL EXTRAJUDICIAL - PRUEBA ANTICIPADA",
+   "DECLARACIÓN UNION MARITAL DE HECHO",
+   "DISOLUCIÓN Y LIQUIDACIÓN SOCIEDAD CONYUGAL",
+   "DISOLUCIÓN Y LIQUIDACIÓN SOCIEDAD PATRIMONIAL",
+   "INTERROGATORIO DE PARTE COMO PRUEBA ANTICIPADA",
+   "RENDICION PROVOCADA DE CUENTAS",
+   "RENDICION ESPONTÁNEA DE CUENTAS",
+   "APREHENSIÓN Y ENTREGA",
+   "ENTREGA DE LA COSA POR EL TRADENTE",
+   "PRESCRIPCIÓN ACCION CAMBIARIA",
+   "PAGO POR CONSIGNACIÓN",
+   "EXPROPIACIÓN",
+   "IMPUGNACIÓN ACTOS O DECISIONES ASAMBLEA/JUNTA",
+   "NULIDAD DE TESTAMENTO",
+   "PETICIÓN DE HERENCIA",
+   "REPOSICIÓN Y CANCELACIÓN DE TÍTULOS VALORES",
+   "VERBAL SUMARIO - INDEMNIZACIÓN DE PERJUICIO",
+   "VERBAL SUMARIO - CONTROVERSIAS DE PROPIEDAD HORIZONTAL",
+   "DECLARATIVO - VERBAL SUMARIO",
+   "DECLARATIVO - VERBAL",
+   "PROCESO DE INSOLVENCIA PERSONA NATURAL NO COMERCIANTE",
+   "LICENCIA / AUTORIZACIÓN JUDICIAL",
+   "JURISDICCIÓN VOLUNTARIA"
+  ],
+  "familia": [
+   "AUMENTO CUOTA ALIMENTARIA",
+   "CANCELACION DE REGISTRO CIVIL",
+   "CORRECCIÓN DE REGISTRO CIVIL DE NACIMIENTO",
+   "CUSTODIA, CUIDADO PERSONAL Y FIJACIÓN DE CUOTA ALIMENTARIA",
+   "DISMINUCION DE CUOTA ALIMENTARIA",
+   "RESTABLECIMIENTO DE DERECHOS",
+   "EJECUTIVO DE ALIMENTOS",
+   "EXONERACION DE CUOTA ALIMENTARIA A MAYOR DE EDAD",
+   "OFRECIMIENTO DE CUOTA ALIMENTARIA",
+   "FIJACION DE CUOTA ALIMENTARIA",
+   "REGULACIÓN DE VISITAS",
+   "SUSPENSIÓN O PÉRDIDA DE LA PATRIA POTESTAD",
+   "RESTITUCIÓN INTERNACIONAL DE MENORES",
+   "PERMISO DE SALIDA DEL PAÍS",
+   "INVESTIGACION DE PATERNIDAD",
+   "IMPUGNACIÓN DE PATERNIDAD O MATERNIDAD",
+   "GRADO JURISDICCIONAL DE CONSULTA",
+   "LEVANTAMIENTO PATRIMONIO FAMILIAR",
+   "CONSTITUCIÓN PATRIMONIO DE FAMILIA",
+   "AFECTACIÓN A VIVIENDA FAMILIAR",
+   "DIVORCIO CONTENCIOSO",
+   "CESACIÓN EFECTOS CIVILES MATRIMONIO RELIGIOSO",
+   "SEPARACIÓN DE CUERPOS",
+   "SEPARACIÓN DE BIENES",
+   "NULIDAD DE MATRIMONIO CIVIL",
+   "DECLARACIÓN DE AUSENCIA",
+   "DECLARACIÓN DE MUERTE PRESUNTA",
+   "INTERDICCIÓN / APOYO A PERSONA CON DISCAPACIDAD",
+   "ADOPCIÓN",
+   "MEDIDA DE PROTECCIÓN (APELACIÓN)",
+   "REVISIÓN DECISIONES ADMINISTRATIVAS DEL DEFENSOR O COMISARIO DE FAMILIA",
+   "CONFLICTO DE COMPETENCIA ENTRE AUTORIDADES ADMINISTRATIVAS",
+   "AUTORIZACIÓN PARA DISPONER BIENES DE MENOR"
+  ]
+ },
+ "cuadernos": [
+  "Principal",
+  "Medidas cautelares",
+  "Reposición",
+  "Apelación",
+  "Queja",
+  "Nulidad",
+  "Incidente",
+  "Excepciones previas",
+  "Excepciones de mérito",
+  "Reconvención",
+  "Liquidación de crédito",
+  "Liquidación de costas",
+  "Remate",
+  "Inventarios y avalúos",
+  "Partición / adjudicación",
+  "Objeción a dictamen",
+  "Cumplimiento",
+  "Ejecución posterior",
+  "Despacho comisorio",
+  "Tercería / intervención",
+  "Amparo de pobreza",
+  "Copias y desgloses",
+  "Otro"
+ ],
+ "materias": [
+  "Admisión / subsanación",
+  "Notificación / emplazamiento",
+  "Contestación / contradicción",
+  "Excepciones",
+  "Reconvención",
+  "Liquidación de crédito",
+  "Liquidación de costas",
+  "Medidas cautelares",
+  "Avalúos / remate",
+  "Recurso (reposición/apelación/queja)",
+  "Nulidad",
+  "Incidente",
+  "Prueba / dictamen",
+  "Audiencia / diligencia",
+  "Oficio / requerimiento / respuesta externa",
+  "Cumplimiento / pago",
+  "Terminación / desistimiento",
+  "Transacción / acuerdo",
+  "Suspensión / reanudación",
+  "Poder / sustitución",
+  "Aclaración/corrección/adición sentencia",
+  "Inventarios / partición",
+  "Otro"
+ ],
+ "macroetapas": [
+  "Estudio de admisibilidad",
+  "Inadmisión / subsanación",
+  "Notificación e integración",
+  "Emplazamiento",
+  "Traslado / contradicción",
+  "Audiencia inicial (Art. 372)",
+  "Audiencia de instrucción (Art. 373)",
+  "Audiencia única",
+  "Instrucción y juzgamiento",
+  "Decisión / sentencia",
+  "Ejecución",
+  "Liquidación del crédito",
+  "Realización de bienes / remate",
+  "Inventarios y avalúos",
+  "Partición / adjudicación",
+  "Cumplimiento",
+  "Terminación"
+ ],
+ "tiposSolicitud": [
+  "Memorial",
+  "Oficio",
+  "Respuesta entidad",
+  "Requerimiento",
+  "Orden judicial",
+  "Recurso",
+  "Contestación de la demanda",
+  "Reforma de la demanda",
+  "Demanda de reconvención",
+  "Contestación de reconvención",
+  "Excepciones previas",
+  "Excepciones de mérito",
+  "Objeción al juramento estimatorio",
+  "Llamamiento en garantía",
+  "Denuncia del pleito",
+  "Intervención de terceros",
+  "Coadyuvancia",
+  "Sucesión procesal",
+  "Medida cautelar",
+  "Levantamiento de medida cautelar",
+  "Solicitud de embargo y secuestro",
+  "Caución",
+  "Solicitud de pruebas",
+  "Objeción a dictamen pericial",
+  "Prueba anticipada / extraprocesal",
+  "Solicitud de inspección judicial",
+  "Exhibición de documentos",
+  "Tacha de falsedad",
+  "Recurso de reposición",
+  "Recurso de apelación",
+  "Recurso de súplica",
+  "Recurso de queja",
+  "Recurso extraordinario de casación",
+  "Recurso extraordinario de revisión",
+  "Nulidad procesal",
+  "Incidente",
+  "Amparo de pobreza",
+  "Recusación / impedimento",
+  "Tacha de sospecha de testigo",
+  "Poder / sustitución de poder",
+  "Reconocimiento de personería",
+  "Renuncia de poder",
+  "Curador ad litem",
+  "Desistimiento",
+  "Transacción",
+  "Conciliación",
+  "Allanamiento",
+  "Pago total de la obligación",
+  "Solicitud de terminación del proceso",
+  "Desistimiento tácito (Art. 317)",
+  "Aclaración de sentencia",
+  "Corrección de sentencia",
+  "Adición de sentencia",
+  "Liquidación del crédito",
+  "Liquidación de costas",
+  "Mandamiento de pago",
+  "Solicitud de remate",
+  "Aprobación de remate",
+  "Entrega de dineros / bienes",
+  "Liquidación de intereses",
+  "Emplazamiento",
+  "Notificación",
+  "Acumulación de procesos",
+  "Suspensión del proceso",
+  "Solicitud de aplazamiento de audiencia",
+  "Oficio a entidad",
+  "Desglose / desarchivo",
+  "Otro"
+ ],
+ "sugerencias": {
+  "Admisión / subsanación": "Para subsanar demanda",
+  "Contestación / contradicción": "Traslado de la demanda",
+  "Excepciones": "Traslado Excepciones previas - Proceso verbal",
+  "Reconvención": "Traslado contestación de reconvención",
+  "Liquidación de crédito": "Traslado Liquidación de crédito",
+  "Liquidación de costas": "Traslado Liquidación de costas",
+  "Medidas cautelares": "Traslado solicitud medida cautelar",
+  "Avalúos / remate": "Traslado Avalúos",
+  "Recurso (reposición/apelación/queja)": "Traslado Recurso de Reposición",
+  "Nulidad": "Traslado escrito de nulidad",
+  "Prueba / dictamen": "Traslado del dictamen pericial",
+  "Oficio / requerimiento / respuesta externa": "5 días para cumplir requerimiento",
+  "Aclaración/corrección/adición sentencia": "Solicitud aclaración sentencia"
+ },
+ "rutas": [
+  {
+   "id": "r_traslado",
+   "nombre": "Traslado → decisión → ejecutoria",
+   "desc": "Liquidaciones, objeción a dictamen, excepciones, incidentes con traslado",
+   "pasos": [
+    {
+     "nombre": "Correr traslado",
+     "materia": "Liquidación de crédito",
+     "origen": "Vencimiento de término",
+     "termino": "Traslado Liquidación de crédito",
+     "descripcion": "Se corre traslado por Secretaría"
+    },
+    {
+     "nombre": "Resolver (decisión del despacho)",
+     "materia": "Liquidación de crédito",
+     "origen": "Providencia (auto/sentencia)",
+     "termino": "",
+     "descripcion": "Vencido el traslado, el despacho resuelve"
+    },
+    {
+     "nombre": "Ejecutoria y notificación",
+     "materia": "Liquidación de crédito",
+     "origen": "Vencimiento de término",
+     "termino": "Ejecutoria de providencia notificada por estado",
+     "descripcion": "Notificada la providencia por estado, corre ejecutoria"
+    }
+   ]
+  },
+  {
+   "id": "r_admision",
+   "nombre": "Admisión / inadmisión → subsanación → decide",
+   "desc": "Estudio de la demanda",
+   "pasos": [
+    {
+     "nombre": "Estudio de admisibilidad",
+     "materia": "Admisión / subsanación",
+     "origen": "Memorial",
+     "termino": "Estudio de admisibilidad",
+     "descripcion": "Repartida la demanda, al despacho para estudio de admisibilidad"
+    },
+    {
+     "nombre": "Subsanación (si se inadmite)",
+     "materia": "Admisión / subsanación",
+     "origen": "Vencimiento de término",
+     "termino": "Para subsanar demanda",
+     "descripcion": "Inadmitida la demanda; corre término para subsanar"
+    },
+    {
+     "nombre": "Nueva decisión (admite / rechaza)",
+     "materia": "Admisión / subsanación",
+     "origen": "Providencia (auto/sentencia)",
+     "termino": "",
+     "descripcion": "Vencido el término de subsanación; el despacho decide admisión o rechazo"
+    }
+   ]
+  },
+  {
+   "id": "r_despacho",
+   "nombre": "Al despacho para proveer → notifica → ejecutoria",
+   "desc": "Solicitudes que el juez resuelve de una",
+   "pasos": [
+    {
+     "nombre": "Al despacho para resolver",
+     "materia": "Terminación / desistimiento",
+     "origen": "Memorial",
+     "termino": "",
+     "descripcion": "Memorial que el despacho resuelve directamente"
+    },
+    {
+     "nombre": "Providencia y notificación",
+     "materia": "Terminación / desistimiento",
+     "origen": "Providencia (auto/sentencia)",
+     "termino": "",
+     "descripcion": "El despacho profiere providencia; se notifica por estado"
+    },
+    {
+     "nombre": "Ejecutoria",
+     "materia": "Terminación / desistimiento",
+     "origen": "Vencimiento de término",
+     "termino": "Ejecutoria de providencia notificada por estado",
+     "descripcion": "Corre ejecutoria de la providencia"
+    }
+   ]
+  },
+  {
+   "id": "r_secretaria",
+   "nombre": "Solo trámite de secretaría",
+   "desc": "Oficios, copias, desgloses, constancias",
+   "pasos": [
+    {
+     "nombre": "Trámite de secretaría",
+     "materia": "Oficio / requerimiento / respuesta externa",
+     "origen": "Oficiosa",
+     "termino": "",
+     "descripcion": "Oficio / copia / desglose / constancia — no requiere decisión del juez"
+    }
+   ]
+  },
+  {
+   "id": "r_recurso",
+   "nombre": "Recurso → traslado → decide",
+   "desc": "Reposición, apelación, queja, súplica",
+   "pasos": [
+    {
+     "nombre": "Recurso interpuesto",
+     "materia": "Recurso (reposición/apelación/queja)",
+     "origen": "Memorial",
+     "termino": "",
+     "descripcion": "La parte interpone el recurso"
+    },
+    {
+     "nombre": "Traslado del recurso",
+     "materia": "Recurso (reposición/apelación/queja)",
+     "origen": "Vencimiento de término",
+     "termino": "Traslado Recurso de Reposición",
+     "descripcion": "Se corre traslado del recurso a la otra parte"
+    },
+    {
+     "nombre": "Decisión del recurso",
+     "materia": "Recurso (reposición/apelación/queja)",
+     "origen": "Providencia (auto/sentencia)",
+     "termino": "",
+     "descripcion": "El despacho resuelve el recurso"
+    }
+   ]
+  },
+  {
+   "id": "r_cumplimiento",
+   "nombre": "Cumplimiento / ejecución",
+   "desc": "Mandamiento, oficios de embargo, remate",
+   "pasos": [
+    {
+     "nombre": "Orden / mandamiento",
+     "materia": "Cumplimiento / pago",
+     "origen": "Providencia (auto/sentencia)",
+     "termino": "",
+     "descripcion": "Se libra la orden (mandamiento de pago, decreto de embargo, etc.)"
+    },
+    {
+     "nombre": "Gestión de cumplimiento",
+     "materia": "Cumplimiento / pago",
+     "origen": "Oficiosa",
+     "termino": "",
+     "descripcion": "Secretaría libra oficios y gestiona el cumplimiento"
+    },
+    {
+     "nombre": "Acreditación de cumplimiento",
+     "materia": "Cumplimiento / pago",
+     "origen": "Respuesta externa",
+     "termino": "",
+     "descripcion": "Se acredita el cumplimiento (respuesta de entidad, consignación, etc.)"
+    }
+   ]
+  }
+ ],
+ "tipoRuta": {
+  "Liquidación del crédito": "r_traslado",
+  "Liquidación de costas": "r_traslado",
+  "Liquidación de intereses": "r_traslado",
+  "Objeción a dictamen pericial": "r_traslado",
+  "Excepciones previas": "r_traslado",
+  "Excepciones de mérito": "r_traslado",
+  "Incidente": "r_traslado",
+  "Nulidad procesal": "r_traslado",
+  "Recurso de reposición": "r_recurso",
+  "Recurso de apelación": "r_recurso",
+  "Recurso de súplica": "r_recurso",
+  "Recurso de queja": "r_recurso",
+  "Mandamiento de pago": "r_cumplimiento",
+  "Solicitud de remate": "r_cumplimiento",
+  "Aprobación de remate": "r_cumplimiento",
+  "Entrega de dineros / bienes": "r_cumplimiento",
+  "Oficio": "r_secretaria",
+  "Oficio a entidad": "r_secretaria",
+  "Desglose / desarchivo": "r_secretaria",
+  "Solicitud de terminación del proceso": "r_despacho",
+  "Desistimiento": "r_despacho",
+  "Transacción": "r_despacho",
+  "Conciliación": "r_despacho",
+  "Allanamiento": "r_despacho",
+  "Pago total de la obligación": "r_despacho"
+ },
+ "motivosPase": [
+  "Memorial para resolver",
+  "Vencimiento de término",
+  "Actuación cumplida",
+  "Actuación incumplida",
+  "Respuesta externa",
+  "Recurso",
+  "Incidente / nulidad",
+  "Liquidación",
+  "Terminación solicitada",
+  "Continuación del trámite",
+  "Otro"
+ ],
+ "plantillas": [
+  {
+   "id": "p_pase_venc",
+   "tipo": "Pase al despacho",
+   "nombre": "Pase — vencimiento de término",
+   "cuerpo": "Pase al Despacho de la señora Juez el presente proceso, vencido el término de {{termino}} que corría en el asunto de la referencia y cuyo vencimiento se produjo el {{vencimiento}}. Sírvase proveer."
+  },
+  {
+   "id": "p_pase_mem",
+   "tipo": "Pase al despacho",
+   "nombre": "Pase — memorial para resolver",
+   "cuerpo": "Pase al Despacho de la señora Juez el presente proceso con el memorial mediante el cual {{descripcion}}, a fin de que se resuelva lo pertinente. Sírvase proveer."
+  },
+  {
+   "id": "p_pase_gen",
+   "tipo": "Pase al despacho",
+   "nombre": "Pase — general (por motivo)",
+   "cuerpo": "Pase al Despacho de la señora Juez el presente proceso, por {{motivo_pase}}. Sírvase proveer."
+  },
+  {
+   "id": "c_recibo",
+   "tipo": "Constancia",
+   "nombre": "Constancia — recibo de memorial",
+   "cuerpo": "Se deja constancia que en la fecha se recibió {{descripcion}} en el proceso de la referencia, el cual se agrega al expediente para lo de su cargo."
+  },
+  {
+   "id": "c_venc",
+   "tipo": "Constancia",
+   "nombre": "Constancia — vencimiento de término",
+   "cuerpo": "Se deja constancia que en la fecha venció el término de {{termino}} en el proceso de la referencia, cuyo vencimiento se produjo el {{vencimiento}}. En consecuencia, pasa al Despacho de la señora Juez para que provea lo que corresponda."
+  },
+  {
+   "id": "c_traslado",
+   "tipo": "Constancia",
+   "nombre": "Constancia — corre traslado",
+   "cuerpo": "Se deja constancia que en la fecha se corre traslado de {{descripcion}} por el término de {{termino}}, el cual vencerá el {{vencimiento}}."
+  },
+  {
+   "id": "c_gen",
+   "tipo": "Constancia",
+   "nombre": "Constancia secretarial — general",
+   "cuerpo": "Se deja constancia que en la fecha, {{descripcion}}."
+  }
+ ],
+ "juzgado": {
+  "juzgado": "JUZGADO PROMISCUO MUNICIPAL",
+  "ciudad": "CHINÁCOTA NORTE DE SANTANDER",
+  "prefijo": "54-172-40-89-001-"
+ },
+ "firmante": {
+  "nombre": "JOSE LUIS MORENO MILLAN",
+  "cargo": "Secretario"
+ }
+}
