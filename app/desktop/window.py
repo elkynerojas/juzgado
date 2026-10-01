@@ -64,11 +64,19 @@ class JsApi:
                 servidor.esperar(url)
             direcciones = [f"http://{ip}:{puerto}" for ip in red.direcciones_lan()]
             if not self._bandeja:
-                self._bandeja = bandeja.instalar(self._window, direcciones[0] if direcciones else url)
+                self._bandeja = self._instalar_bandeja(direcciones[0] if direcciones else url)
             return {"ok": True, "url": url, "direcciones": direcciones}
         except Exception as e:
             log.exception("No se pudo iniciar con %s", cfg)
             return {"ok": False, "mensaje": str(e) or type(e).__name__}
+
+    def _instalar_bandeja(self, direccion: str) -> bool:
+        # la bandeja es una comodidad: si falla, el servidor igual debe quedar funcionando
+        try:
+            return bandeja.instalar(self._window, direccion)
+        except Exception:
+            log.exception("No se pudo crear el icono de bandeja")
+            return False
 
     def probar(self, url: str) -> dict:
         try:

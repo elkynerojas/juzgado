@@ -2,7 +2,7 @@ import socket
 
 import pytest
 
-from app.desktop import config_local, red
+from app.desktop import bandeja, config_local, red
 from app.desktop.window import JsApi
 
 
@@ -18,6 +18,8 @@ class VentanaFalsa:
 def entorno(tmp_path, monkeypatch):
     monkeypatch.setenv(config_local.ENV_CONFIG, str(tmp_path / "local"))
     monkeypatch.setenv("CONTROL_PROCESOS_DATOS", str(tmp_path / "datos"))
+    # en Windows la bandeja crearía un icono real junto al reloj
+    monkeypatch.setattr(bandeja, "instalar", lambda ventana, direccion: False)
     return tmp_path
 
 
@@ -121,3 +123,13 @@ def test_asistente_servidor_y_cliente(entorno):
     assert JsApi({"modo": "cliente", "url": r["url"]}).inicio() == {"paso": "entrar", "url": r["url"]}
     assert cliente.reconfigurar() and config_local.leer() is None
     assert cliente.abrir_en_navegador("file:///etc/passwd") is False
+
+
+def test_fallo_de_bandeja_no_tumba_el_servidor(entorno, monkeypatch):
+    def falla(ventana, direccion):
+        raise RuntimeError("sin bandeja")
+
+    monkeypatch.setattr(bandeja, "instalar", falla)
+    api = JsApi()
+    api._window = VentanaFalsa()
+    assert api._instalar_bandeja("http://10.0.0.1:8765") is False
