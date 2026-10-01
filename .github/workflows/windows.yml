@@ -1,0 +1,38 @@
+# Prueba y construye el instalador de Windows. PyInstaller no compila desde macOS,
+# así que este flujo es la forma de obtener el .exe sin tener un equipo Windows a la mano.
+name: Windows
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  construir:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Dependencias
+        run: uv sync --group dev --group build
+      - name: Pruebas
+        run: uv run pytest -q
+      - name: Icono
+        run: uv run python packaging/generar_icono.py
+      - name: Ejecutable
+        run: uv run pyinstaller packaging/control_procesos.spec --noconfirm
+      - name: Instalador
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y }
+          & $iscc packaging\instalador.iss
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ControlProcesos-Setup
+          path: dist/ControlProcesos-Setup-*.exe
+          if-no-files-found: error

@@ -65,7 +65,11 @@ function enlazar() {
   $('#search').addEventListener('input', debounce(() => (S.vista === 'gestion' ? renderGestion() : nav.ir('procesos')), 250));
 
   const menu = (id, fn) => { $('#' + id).onclick = () => { $('#menuPop').classList.remove('open'); return fn(); }; };
-  $('#btnMenu').onclick = () => $('#menuPop').classList.toggle('open');
+  $('#btnMenu').onclick = () => {
+    // solo existe dentro de la ventana de escritorio
+    $('#miModo').style.display = window.pywebview && window.pywebview.api ? '' : 'none';
+    $('#menuPop').classList.toggle('open');
+  };
   menu('miConfig', () => nav.ir('config'));
   menu('miExport', exportarRespaldo);
   menu('miImport', restaurarDesdeArchivo);
@@ -82,6 +86,11 @@ function enlazar() {
     const oscuro = S.me.preferencias.modo ? S.me.preferencias.modo === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
     await guardarTema({ modo: oscuro ? 'light' : 'dark' });
     if (S.vista === 'config') renderConfig();
+  });
+  menu('miModo', async () => {
+    if (!confirm('Este equipo olvidará si es servidor o cliente y lo preguntará al abrir de nuevo. Los datos no se borran. ¿Continuar?')) return;
+    await window.pywebview.api.reconfigurar();
+    toast('Listo. Cierre y vuelva a abrir la aplicación.');
   });
   menu('miPassword', cambiarPassword);
   menu('miSalir', async () => { await api.post('/api/auth/logout'); S.me = null; cerrar('ovForm'); pedirIngreso(); });

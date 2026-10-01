@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Control de Procesos</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1a2230;--muted:#5b6675;--line:#e2e6ec;--navy:#1f3864;--red:#c0392b;--green:#2f7d32}
+@media (prefers-color-scheme:dark){:root{--bg:#0f141b;--panel:#171d27;--ink:#e6eaf0;--muted:#9aa6b6;--line:#28303c;--navy:#4a76c4}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.caja{width:100%;max-width:720px}
+h1{font-family:Georgia,serif;font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);margin-bottom:18px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.dos{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:15px;margin:0 0 6px}
+.card p{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+input{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;margin-bottom:10px}
+button{font:inherit;font-weight:600;font-size:13px;border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:8px;padding:8px 12px;cursor:pointer}
+button.sec{background:transparent;color:var(--ink);border-color:var(--line)}
+button:disabled{opacity:.6;cursor:wait}
+.err{color:var(--red);margin:0 0 14px;font-weight:600}
+.msg{font-size:12.5px;min-height:18px;margin-top:8px}
+.dir{font-family:Consolas,Menlo,monospace;font-size:15px;font-weight:700;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:6px;user-select:all}
+.oculto{display:none}
+</style>
+</head>
+<body>
+<div class="caja">
+  <div id="cargando"><h1>Control de Procesos</h1><div class="sub">Iniciando…</div></div>
+
+  <div id="asistente" class="oculto">
+    <h1>Configurar este equipo</h1>
+    <div class="sub">Elija cómo va a funcionar la aplicación en <b id="equipo"></b>. Se pregunta una sola vez.</div>
+    <div class="err oculto" id="error"></div>
+    <div class="dos">
+      <div class="card">
+        <h2>🖥️ Este equipo es el servidor</h2>
+        <p>Aquí se guarda la base de datos. Los demás equipos de la red se conectan a este. Debe permanecer encendido y con la aplicación abierta mientras se trabaja.</p>
+        <label>Puerto</label><input id="puerto" type="number" min="1024" max="65535">
+        <button id="btnServidor">Usar como servidor</button>
+        <div class="msg" id="msgServidor"></div>
+      </div>
+      <div class="card">
+        <h2>💻 Este equipo es un cliente</h2>
+        <p>Se conecta al equipo servidor del despacho. Escriba la dirección que aparece en el servidor (por ejemplo 192.168.1.10).</p>
+        <label>Dirección del servidor</label><input id="url" placeholder="192.168.1.10" autocomplete="off">
+        <button id="btnCliente">Conectar</button> <button class="sec" id="btnProbar">Probar conexión</button>
+        <div class="msg" id="msgCliente"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="listo" class="oculto">
+    <h1>Servidor listo</h1>
+    <div class="sub">En los demás equipos, instale la aplicación, elija «Este equipo es un cliente» y escriba esta dirección:</div>
+    <div class="card">
+      <div id="direcciones"></div>
+      <p style="margin:10px 0 0">Si un cliente no logra conectarse, revise que el Firewall de Windows permita el puerto en este equipo (el instalador lo configura). Al cerrar la ventana el servidor sigue funcionando desde el icono junto al reloj.</p>
+    </div>
+    <div style="margin-top:14px"><button id="btnEntrar">Entrar a la aplicación</button></div>
+  </div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const ver = id => ['cargando', 'asistente', 'listo'].forEach(x => $('#' + x).classList.toggle('oculto', x !== id));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let destino = '';
+
+function mensaje(id, texto, ok) { const m = $('#' + id); m.textContent = texto; m.style.color = ok ? 'var(--green)' : 'var(--red)'; }
+
+async function ocupado(boton, fn) {
+  const botones = document.querySelectorAll('button');
+  botones.forEach(b => { b.disabled = true; });
+  const texto = boton.textContent; boton.textContent = 'Un momento…';
+  try { return await fn(); } finally { boton.textContent = texto; botones.forEach(b => { b.disabled = false; }); }
+}
+
+async function arrancar() {
+  const r = await pywebview.api.inicio();
+  if (r.paso === 'entrar') { location.href = r.url; return; }
+  $('#equipo').textContent = r.equipo; $('#puerto').value = r.puerto; $('#url').value = r.url;
+  $('#error').textContent = r.error; $('#error').classList.toggle('oculto', !r.error);
+  ver('asistente');
+}
+
+$('#btnServidor').onclick = e => ocupado(e.target, async () => {
+  const r = await pywebview.api.elegir_servidor($('#puerto').value);
+  if (!r.ok) { mensaje('msgServidor', r.mensaje, false); return; }
+  destino = r.url;
+  $('#direcciones').innerHTML = r.direcciones.length ? r.direcciones.map(d => '<div class="dir">' + esc(d) + '</div>').join('')
+    : '<p>No se detectó una red local. Conecte este equipo a la red y consulte su dirección IP.</p>';
+  ver('listo');
+});
+$('#btnCliente').onclick = e => ocupado(e.target, async () => {
+  const r = await pywebview.api.elegir_cliente($('#url').value);
+  if (!r.ok) { mensaje('msgCliente', r.mensaje, false); return; }
+  location.href = r.url;
+});
+$('#btnProbar').onclick = e => ocupado(e.target, async () => {
+  const r = await pywebview.api.probar($('#url').value);
+  mensaje('msgCliente', r.mensaje, r.ok);
+});
+$('#btnEntrar').onclick = () => { location.href = destino; };
+
+window.addEventListener('pywebviewready', arrancar);
+</script>
+</body>
+</html>
