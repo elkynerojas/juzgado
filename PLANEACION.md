@@ -7,7 +7,7 @@
 | 0. Base y prueba de concepto | Hecha | Falta comprobar en Windows la impresión/PDF y el guardado de archivos dentro de WebView2. |
 | 1. Dominio y BD | Hecha | Reglas en Python verificadas contra el JS original; 18 tablas, migración inicial y semillas. |
 | 2. API | Hecha | 67 endpoints: sesión, usuarios y roles, procesos, actuaciones, tablero, paquetes, configuración, documentos, auditoría. Se exploran en `/api/docs`. |
-| 3. Frontend | Pendiente | |
+| 3. Frontend | Hecha | Pantallas originales conectadas a la API, ingreso, usuarios, roles y auditoría. Probado en navegador; falta probar impresión y exportación dentro de la ventana en Windows. |
 | 4. Respaldos | Pendiente | |
 | 5. Escritorio y empaquetado | Pendiente | |
 | 6. Verificación final | Pendiente | |

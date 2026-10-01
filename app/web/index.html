@@ -2,67 +2,165 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Control de Procesos — prueba de concepto</title>
-<style>
-body{font-family:"Segoe UI",-apple-system,Helvetica,Arial,sans-serif;margin:0;background:#f4f5f7;color:#1a2230;font-size:14px}
-header{background:#1f3864;color:#fff;padding:12px 18px;font-weight:600}
-main{max-width:820px;margin:18px auto;padding:0 14px}
-.card{background:#fff;border:1px solid #e2e6ec;border-radius:12px;padding:14px;margin-bottom:12px}
-h2{font-size:15px;margin:0 0 8px}
-button{border:1px solid #1f3864;background:#1f3864;color:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600;margin:4px 4px 4px 0}
-pre{background:#0f141b;color:#e6eaf0;border-radius:8px;padding:10px;min-height:90px;white-space:pre-wrap;font-size:12px}
-.muted{color:#5b6675;font-size:12.5px}
-@media print{header,button,pre,.muted{display:none}}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Control de Procesos</title>
+<link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
-<header>Control de Procesos — Fase 0: prueba de concepto</header>
-<main>
-  <div class="card"><h2>Entorno</h2><div id="env" class="muted">Detectando…</div></div>
-  <div class="card"><h2>1. Impresión / PDF</h2>
-    <div class="muted">Hay que confirmar en Windows (WebView2) cuál de estas abre el diálogo de impresión con "Guardar como PDF".</div>
-    <button id="pIframe">A. Iframe oculto</button>
-    <button id="pOpen">B. window.open</button>
-    <button id="pPage">C. window.print() de esta página</button>
-    <button id="pNav">D. Abrir en el navegador del sistema</button>
+<header>
+  <div class="hbar">
+    <div class="brand"><span class="em">&#9878;&#65039;</span><h1>Control de Procesos<small id="brandJz"></small></h1></div>
+    <div class="htools">
+      <div class="tabs">
+        <button class="tab active" data-view="tablero">Tablero</button>
+        <button class="tab" data-view="procesos">Procesos</button>
+        <button class="tab" data-view="gestion" data-permiso="paquetes.ver">Gesti&oacute;n por paquetes</button>
+      </div>
+      <div class="searchbox"><input id="search" placeholder="Buscar radicado o parte&hellip;" autocomplete="off"></div>
+      <button class="btn ghost sm" id="btnNuevoProc" data-permiso="procesos.crear">+ Proceso</button>
+      <div class="menu">
+        <button class="btn ghost sm" id="btnMenu">Men&uacute; &#9662;</button>
+        <div class="menu-pop" id="menuPop">
+          <button id="miConfig">&#9881;&#65039; Configuraci&oacute;n del sistema</button>
+          <div class="sep"></div>
+          <button id="miEjemplos" data-permiso="respaldo.restaurar">Cargar datos de ejemplo</button>
+          <button id="miVaciar" data-permiso="respaldo.vaciar" style="color:var(--red)">Vaciar todo</button>
+          <div class="sep"></div>
+          <button id="miTema">Cambiar tema claro/oscuro</button>
+          <button id="miPassword">Cambiar mi contrase&ntilde;a</button>
+          <button id="miSalir">Cerrar sesi&oacute;n</button>
+        </div>
+      </div>
+      <span class="userchip" id="userChip"></span>
+    </div>
   </div>
-  <div class="card"><h2>2. Guardar archivos</h2>
-    <button id="sJson">Guardar respaldo .json</button>
-    <button id="sCsv">Guardar lista .csv</button>
+</header>
+<div class="wrap">
+  <div id="view-tablero"></div>
+  <div id="view-procesos" style="display:none"></div>
+  <div id="view-gestion" style="display:none"></div>
+  <div id="view-config" style="display:none"></div>
+  <div id="view-detalle" style="display:none"></div>
+</div>
+
+<!-- Modal Proceso -->
+<div class="overlay" id="ovProc"><div class="modal">
+  <div class="mh"><h2 id="procTitle">Nuevo proceso</h2><button class="x" data-close>&times;</button></div>
+  <div class="mb">
+    <div class="frow">
+      <div class="field"><label>Radicado <span class="req">*</span></label><input id="p_rad" placeholder="2026-00123"></div>
+      <div class="field"><label>Naturaleza</label><select id="p_nat"><option>Civil</option><option>Familia</option><option>Otro</option></select></div>
+    </div>
+    <div class="field"><label>Clase / asunto</label><input id="p_clase" list="asuntos" placeholder="Ejecutivo, Verbal, Pertenencia, Alimentos&hellip;"><datalist id="asuntos"></datalist></div>
+    <div class="frow">
+      <div class="field"><label>Demandante</label><input id="p_dte"></div>
+      <div class="field"><label>Demandado</label><input id="p_dda"></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Fecha de radicaci&oacute;n</label><input id="p_frad" type="date"></div>
+      <div class="field"><label>Situaci&oacute;n del proceso</label>
+        <select id="p_sit"><option>Activo</option><option>Suspendido</option><option>Apelado</option><option>En consulta</option><option>Terminado</option><option>Archivado</option></select></div>
+    </div>
+    <div class="field"><label>Macroetapa actual (opcional)</label><input id="p_macro" list="macroetapas" placeholder="Traslado, Audiencia inicial, Ejecuci&oacute;n&hellip;"><datalist id="macroetapas"></datalist>
+      <div class="hint">La etapa estable del proceso. Los frentes (cautelares, recursos, incidentes) se manejan como cuadernos, sin cambiar la macroetapa.</div></div>
   </div>
-  <div class="card"><h2>Registro</h2><pre id="log"></pre></div>
-</main>
-<script>
-const $=s=>document.querySelector(s);
-function log(m){$('#log').textContent+=new Date().toLocaleTimeString()+'  '+m+'\n';}
-const nativo=()=>!!(window.pywebview&&window.pywebview.api);
+  <div class="mf"><button class="btn danger" id="p_del" style="margin-right:auto; display:none">Eliminar</button><button class="btn" data-close>Cancelar</button><button class="btn primary" id="p_save">Guardar</button></div>
+</div></div>
 
-async function guardar(nombre,contenido,tipo,desc){
-  if(nativo()){const r=await window.pywebview.api.guardar_texto(nombre,contenido,desc);log(r?'Guardado en '+r:'Guardado cancelado');return;}
-  const u=URL.createObjectURL(new Blob([contenido],{type:tipo}));const a=document.createElement('a');a.href=u;a.download=nombre;a.click();URL.revokeObjectURL(u);log('Descarga del navegador: '+nombre);
-}
+<!-- Modal Actuación -->
+<div class="overlay" id="ovAct"><div class="modal">
+  <div class="mh"><h2 id="actTitle">Nueva actuaci&oacute;n</h2><button class="x" data-close>&times;</button></div>
+  <div class="mb">
+    <div class="frow">
+      <div class="field"><label>Cuaderno / tr&aacute;mite <span class="req">*</span></label><select id="a_cua"></select></div>
+      <div class="field"><label>Materia / tipo de gesti&oacute;n <span class="req">*</span></label><select id="a_mat"></select>
+        <div class="hint">Categor&iacute;a amplia para trabajar por paquetes.</div></div>
+    </div>
+    <div class="field"><label>Tipo de solicitud (cat&aacute;logo detallado)</label><select id="a_tipo"></select>
+      <div class="hint">Opcional. Permite el filtro fino (p. ej. &ldquo;Liquidaci&oacute;n del cr&eacute;dito&rdquo;, &ldquo;Solicitud de terminaci&oacute;n del proceso&rdquo;).</div></div>
+    <div class="field"><label>Ruta procesal (encadena el tr&aacute;mite hasta finalizar)</label><select id="a_ruta"></select>
+      <div class="previewbox tiny" id="rutaPrev" style="display:none"></div>
+      <div class="hint">Al elegir una ruta, el cuadro le propondr&aacute; el siguiente paso cuando cierre el actual. Usted confirma cada uno.</div></div>
+    <div class="frow">
+      <div class="field"><label>Origen del pendiente <span class="req">*</span></label>
+        <select id="a_ori"><option>Memorial</option><option>Vencimiento de t&eacute;rmino</option><option>Providencia (auto/sentencia)</option><option>Respuesta externa</option><option>Oficiosa</option></select></div>
+      <div class="field" id="fMem"><label>Fecha del memorial / hecho</label><input id="a_mem" type="date"></div>
+    </div>
+    <div class="field"><label>Descripci&oacute;n <span class="req">*</span></label><input id="a_desc" placeholder="Ej: Ejecutante radica liquidaci&oacute;n del cr&eacute;dito"></div>
 
-$('#pIframe').onclick=()=>{
-  const old=document.getElementById('printFrame');if(old)old.remove();
-  const f=document.createElement('iframe');f.id='printFrame';f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';
-  f.onload=()=>{try{f.contentWindow.focus();f.contentWindow.print();log('A: print() del iframe invocado');}catch(e){log('A: error '+e);}};
-  f.src='/spike/doc';document.body.appendChild(f);
-};
-$('#pOpen').onclick=()=>{let w=null;try{w=window.open('/spike/doc','_blank');}catch(e){log('B: error '+e);}
-  if(!w){log('B: window.open bloqueado o no soportado');return;}
-  w.addEventListener('load',()=>{try{w.print();log('B: print() de la ventana nueva invocado');}catch(e){log('B: error '+e);}});};
-$('#pPage').onclick=()=>{try{window.print();log('C: window.print() invocado');}catch(e){log('C: error '+e);}};
-$('#pNav').onclick=async()=>{const url=location.origin+'/spike/doc';
-  if(nativo()){await window.pywebview.api.abrir_en_navegador(url);log('D: abierto en el navegador del sistema');}else{window.open(url,'_blank');log('D: sin puente nativo, abierto en pestaña');}};
-$('#sJson').onclick=()=>guardar('respaldo_prueba.json',JSON.stringify({procesos:[],actuaciones:[],nota:'áéíóú ñ'},null,2),'application/json','Respaldo JSON (*.json)');
-$('#sCsv').onclick=()=>guardar('jornada_prueba.csv','﻿Radicado;Partes;Descripción\n"2019-00327";"Banco c/ González";"Liquidación del crédito"\n','text/csv;charset=utf-8','CSV (*.csv)');
+    <div class="block">
+      <div class="bt">Compuerta de secretar&iacute;a</div>
+      <div class="frow">
+        <div class="field"><label>Constancia secretarial (fecha)</label><input id="a_cons" type="date"></div>
+        <div class="field"><label>&iquest;Pasa al despacho?</label><select id="a_pasa"><option value="">&mdash; sin decidir &mdash;</option><option>S&iacute;</option><option>No &ndash; tr&aacute;mite secretar&iacute;a</option></select></div>
+      </div>
+      <div class="field" id="fPase"><label>Fecha de pase al despacho</label><input id="a_pase" type="date"></div>
+    </div>
+    <div class="block">
+      <div class="bt">Resoluci&oacute;n y cierre</div>
+      <div class="frow">
+        <div class="field"><label>Providencia / resuelta (fecha)</label><input id="a_prov" type="date"></div>
+        <div class="field"><label>Fecha de ejecutoria</label><input id="a_ejec" type="date"></div>
+      </div>
+      <div class="field"><label>Fecha cumplida / notificada</label><input id="a_cump" type="date"></div>
+    </div>
+    <div class="block">
+      <div class="bt">T&eacute;rmino (opcional)</div>
+      <div class="field"><label>T&eacute;rmino aplicable</label><select id="a_term"></select></div>
+      <div class="frow" id="termCustom" style="display:none">
+        <div class="field"><label>D&iacute;as</label><input id="a_tdias" type="number" min="1"></div>
+        <div class="field"><label>C&oacute;mputo</label><select id="a_thab"><option value="true">D&iacute;as h&aacute;biles judiciales</option><option value="false">D&iacute;as calendario</option></select></div>
+      </div>
+      <div class="field"><label>Fecha de inicio del t&eacute;rmino</label><input id="a_ini" type="date">
+        <div class="hint">&Aacute;nclela al hito real (ejecutoria, notificaci&oacute;n). Vac&iacute;a = t&eacute;rmino latente, no corre.</div></div>
+      <div class="previewbox" id="termPrev">Sin t&eacute;rmino.</div>
+    </div>
+    <div class="field"><label><input type="checkbox" id="a_susp" style="width:auto; margin-right:6px">Esta actuaci&oacute;n suspende el proceso principal</label></div>
+    <div class="field"><label>Observaciones</label><textarea id="a_obs" rows="2"></textarea></div>
+    <div class="previewbox" id="actPrev"></div>
+  </div>
+  <div class="mf"><button class="btn danger" id="a_del" style="margin-right:auto; display:none">Eliminar</button><button class="btn" data-close>Cancelar</button><button class="btn primary" id="a_save">Guardar actuaci&oacute;n</button></div>
+</div></div>
 
-async function env(){
-  let s='';try{const r=await fetch('/api/health');s=(await r.json()).status;}catch(e){s='sin respuesta';}
-  $('#env').textContent='API: '+s+' · Puente nativo: '+(nativo()?'sí ('+window.pywebview.platform+')':'no (navegador)')+' · '+navigator.userAgent;
-}
-window.addEventListener('pywebviewready',env);env();
-</script>
+<!-- Modal Generar documento -->
+<div class="overlay" id="ovGen"><div class="modal">
+  <div class="mh"><h2 id="genTitle">Generar documento</h2><button class="x" data-close>&times;</button></div>
+  <div class="mb">
+    <div class="frow">
+      <div class="field"><label>Plantilla</label><select id="g_tpl"></select></div>
+      <div class="field"><label>Firmante</label><select id="g_firm"></select></div>
+    </div>
+    <div class="field" id="g_motivowrap"><label>Motivo del pase</label><input id="g_motivo" list="motivos" placeholder="Memorial para resolver, vencimiento de t&eacute;rmino&hellip;"><datalist id="motivos"></datalist></div>
+    <div class="field"><label>Fecha del documento (la que se registró para la constancia o el pase)</label><input id="g_fecha" type="date"><div class="hint">Es la fecha que saldrá impresa. Se toma de la constancia/pase; puede ajustarla aquí.</div></div>
+    <div class="field"><label>Texto de la constancia (puede ajustarlo antes de generar)</label><textarea id="g_cuerpo" rows="6"></textarea></div>
+    <div class="previewbox tiny">Vista previa del documento con membrete, fecha y bloque de firma. Al generar se abre el di&aacute;logo de impresi&oacute;n: elija <b>&ldquo;Guardar como PDF&rdquo;</b> o imprima.</div>
+  </div>
+  <div class="mf"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="g_print">&#128424;&#65039; Imprimir / Guardar PDF</button></div>
+</div></div>
+
+<!-- Formulario genérico (configuración, usuarios, roles) -->
+<div class="overlay" id="ovForm"><div class="modal" id="formModal">
+  <div class="mh"><h2 id="formTitle"></h2><button class="x" data-close>&times;</button></div>
+  <div class="mb" id="formBody"></div>
+  <div class="mf"><button class="btn danger" id="formDel" style="margin-right:auto;display:none">Eliminar</button><button class="btn" data-close>Cancelar</button><button class="btn primary" id="formSave">Guardar</button></div>
+</div></div>
+
+<!-- Ingreso / primer arranque -->
+<div class="login" id="login"><div class="card">
+  <h2 id="loginTitle">Control de Procesos</h2>
+  <div class="muted tiny" id="loginSub" style="margin-bottom:14px"></div>
+  <form id="loginForm">
+    <div class="field" id="lfNombre" style="display:none"><label>Nombre completo</label><input id="l_nombre" autocomplete="name"></div>
+    <div class="field"><label>Usuario</label><input id="l_usuario" autocomplete="username"></div>
+    <div class="field"><label>Contrase&ntilde;a</label><input id="l_password" type="password" autocomplete="current-password"></div>
+    <div class="field" id="lfRepite" style="display:none"><label>Repita la contrase&ntilde;a</label><input id="l_repite" type="password" autocomplete="new-password"></div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn primary" type="submit" id="loginBtn">Ingresar</button>
+  </form>
+</div></div>
+
+<input type="file" id="fileImagen" accept="image/*" style="display:none">
+<div class="toast" id="toast"></div>
+<script type="module" src="/js/main.js"></script>
 </body>
 </html>
