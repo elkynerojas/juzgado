@@ -1,0 +1,13 @@
+En base al archivo html control_procesos.html se requiere que las funcionalidades se trasladen a un 
+proyecto de desarrollo con python, que funcione en dispositivos windows como una aplicación nativa.
+
+Requiero que los datos persistan dentro usando base de datos local sqlite
+
+Se debe permitir realizar backups de respaldo de la información estructurada en json
+
+También se debe permitir restaurar los backups a través de los archivos json.
+
+Se requiere implementar registro de usuarios, autenticación y roles granulares a través de asignación
+de permisos.
+
+Se debe permitir el acceso a otros usuarios en red local, donde un equipo asignado será el servidor.
