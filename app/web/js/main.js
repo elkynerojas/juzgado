@@ -1,6 +1,6 @@
 import { api, onSesionVencida } from './api.js';
 import { S, nav, puede, cargarCfg, aplicarTema, guardarTema } from './estado.js';
-import { $, $$, toast, cerrar, debounce, hayModalAbierto } from './util.js';
+import { $, $$, toast, abrir, cerrar, debounce, hayModalAbierto } from './util.js';
 import { renderTablero, renderProcesos, renderGestion, cargarEjemplos } from './vistas.js';
 import { openDetalle } from './detalle.js';
 import { renderConfig } from './config.js';
@@ -12,6 +12,7 @@ import { exportarRespaldo, restaurarDesdeArchivo } from './respaldo.js';
 const VISTAS = ['tablero', 'procesos', 'gestion', 'config', 'detalle'];
 const RENDER = { tablero: renderTablero, procesos: renderProcesos, gestion: renderGestion, config: renderConfig };
 const REFRESCO_MS = 30000;
+const MANUAL = '/ayuda/Manual_de_usuario_Control_de_Procesos.pdf';
 
 function mostrar(v) {
   S.vista = v;
@@ -38,6 +39,24 @@ async function arrancar() {
   Object.assign(S, { filtro: null, gMat: null, gSit: null, gTipo: null, cfgTab: null, proc: null });
   $('#search').value = '';
   await nav.ir('tablero');
+}
+
+async function mostrarAcerca() {
+  const a = await api.get('/api/acerca');
+  $('#acNombre').textContent = a.nombre;
+  $('#acVersion').textContent = 'Versión ' + a.version;
+  $('#acJuzgado').textContent = S.cfg ? S.cfg.juzgado.juzgado : '';
+  $('#acDev').textContent = a.desarrollador.nombre;
+  $('#acTel').textContent = a.desarrollador.telefono;
+  $('#acCorreo').textContent = a.desarrollador.correo;
+  abrir('ovAcerca');
+}
+
+/* El PDF lo sirve el servidor; en la ventana de escritorio se abre en el visor de Windows para no salir de la aplicación. */
+async function abrirManual() {
+  const url = location.origin + MANUAL;
+  if (window.pywebview && window.pywebview.api) await window.pywebview.api.abrir_en_navegador(url);
+  else window.open(url, '_blank');
 }
 
 function pedirIngreso() {
@@ -93,6 +112,8 @@ function enlazar() {
     toast('Listo. Cierre y vuelva a abrir la aplicación.');
   });
   menu('miPassword', cambiarPassword);
+  menu('miManual', abrirManual);
+  menu('miAcerca', mostrarAcerca);
   menu('miSalir', async () => { await api.post('/api/auth/logout'); S.me = null; cerrar('ovForm'); pedirIngreso(); });
 
   // otros usuarios cambian datos: se refresca solo mientras nadie está escribiendo

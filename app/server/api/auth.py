@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from app.acerca import DESARROLLADOR, NOMBRE, VERSION
 from app.server.api.deps import COOKIE, DURACION, get_db, permisos_de, usuario_actual
 from app.server.api.esquemas import CambioPassword, Instalacion, Login
 from app.server.core.permisos import ROL_ADMIN
@@ -40,6 +41,11 @@ def yo_dict(u: Usuario) -> dict:
 @r.get("/estado")
 def estado(s: Session = Depends(get_db)):
     return {"inicializado": bool(s.scalar(select(func.count()).select_from(Usuario)))}
+
+
+@r.get("/acerca")
+def acerca():
+    return {"nombre": NOMBRE, "version": VERSION, "desarrollador": DESARROLLADOR}
 
 
 @r.post("/instalacion", status_code=201)

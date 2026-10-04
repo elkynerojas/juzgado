@@ -4,7 +4,8 @@
 ; El instalador queda en dist\ControlProcesos-Setup-<versión>.exe
 
 #define Nombre "Control de Procesos"
-#define Version "0.1.0"
+#define Version "1.1"
+#define Desarrollador "RedSoft Developers"
 #define Exe "ControlProcesos.exe"
 #define Puerto "8765"
 #define ReglaFirewall "Control de Procesos"
@@ -13,7 +14,12 @@
 AppId={{6E2B1C7A-52D4-4C0B-9B1E-0B6C7D3A9F41}
 AppName={#Nombre}
 AppVersion={#Version}
-AppPublisher=Redsoft
+AppPublisher={#Desarrollador}
+AppContact=redsoftdevelopers@gmail.com
+AppSupportPhone=+57 318 220 41 90
+VersionInfoVersion={#Version}
+VersionInfoCompany={#Desarrollador}
+VersionInfoCopyright=Copyright (C) {#Desarrollador}
 DefaultDirName={autopf}\ControlProcesos
 DefaultGroupName={#Nombre}
 DisableProgramGroupPage=yes

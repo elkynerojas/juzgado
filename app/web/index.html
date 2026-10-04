@@ -33,6 +33,10 @@
           <button id="miModo" style="display:none">Cambiar modo servidor / cliente</button>
           <button id="miPassword">Cambiar mi contrase&ntilde;a</button>
           <button id="miSalir">Cerrar sesi&oacute;n</button>
+          <div class="sep"></div>
+          <div class="menu-lbl">Ayuda</div>
+          <button id="miManual">&#128214; Manual de usuario (PDF)</button>
+          <button id="miAcerca">&#8505;&#65039; Acerca de</button>
         </div>
       </div>
       <span class="userchip" id="userChip"></span>
@@ -140,6 +144,24 @@
     <div class="previewbox tiny">Vista previa del documento con membrete, fecha y bloque de firma. Al generar se abre el di&aacute;logo de impresi&oacute;n: elija <b>&ldquo;Guardar como PDF&rdquo;</b> o imprima.</div>
   </div>
   <div class="mf"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="g_print">&#128424;&#65039; Imprimir / Guardar PDF</button></div>
+</div></div>
+
+<!-- Acerca de -->
+<div class="overlay" id="ovAcerca"><div class="modal" style="max-width:440px">
+  <div class="mh"><h2>Acerca de</h2><button class="x" data-close>&times;</button></div>
+  <div class="mb acerca">
+    <div class="em">&#9878;&#65039;</div>
+    <h3 id="acNombre"></h3>
+    <div class="ver" id="acVersion"></div>
+    <div class="muted tiny" id="acJuzgado"></div>
+    <div class="dev">
+      <div class="bt">Desarrollado por</div>
+      <div class="fila"><span class="k">Nombre</span><span id="acDev"></span></div>
+      <div class="fila"><span class="k">Tel&eacute;fono</span><span id="acTel"></span></div>
+      <div class="fila"><span class="k">Correo electr&oacute;nico</span><span id="acCorreo"></span></div>
+    </div>
+  </div>
+  <div class="mf"><button class="btn primary" data-close>Cerrar</button></div>
 </div></div>
 
 <!-- Formulario genérico (configuración, usuarios, roles) -->
