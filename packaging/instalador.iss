@@ -1,4 +1,4 @@
-; Instalador de Control de Procesos (Inno Setup 6).
+﻿; Instalador de Control de Procesos (Inno Setup 6).
 ; Primero se construye la aplicación con PyInstaller; luego:
 ;   ISCC packaging\instalador.iss
 ; El instalador queda en dist\ControlProcesos-Setup-<versión>.exe
