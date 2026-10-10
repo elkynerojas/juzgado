@@ -86,9 +86,9 @@ def test_tablero(esc):
     assert (s["sin_constancia"], s["falta_pasar"], s["al_despacho"]) == (x["sc"], x["fp"], x["ad"])
     assert s["por_situacion"] == x["ps"]
     assert (s["en_despacho"], s["en_secretaria"]) == (x["eD"], x["eS"])
-    obtenido = sorted((iso(fe), esc.procesos[a.proceso_id].radicado, a.descripcion) for fe, a in s["proximos"])
+    obtenido = sorted((iso(fe), esc.procesos[a.proceso_id].radicado, desc) for fe, a, desc in s["proximos"])
     assert obtenido == sorted((p["f"], p["rad"], p["desc"]) for p in x["prox"])
-    assert [fe for fe, _ in s["proximos"]] == sorted(fe for fe, _ in s["proximos"])
+    assert [fe for fe, *_ in s["proximos"]] == sorted(fe for fe, *_ in s["proximos"])
 
 
 @por_escenario

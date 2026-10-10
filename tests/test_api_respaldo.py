@@ -46,7 +46,7 @@ def test_exportar_vaciar_restaurar_deja_todo_igual(admin):
     assert r.status_code == 200, r.text
     assert r.json() | {"respaldo_previo": ""} == {
         "formato": "control-procesos", "procesos": 7, "actuaciones": 18, "actuaciones_omitidas": 0,
-        "usuarios_restaurados": 0, "respaldo_previo": "",
+        "usuarios_restaurados": 0, "stat_eventos": 0, "respaldo_previo": "",
     }  # fmt: skip
     assert estado(admin) == antes
     assert admin.get(f"/api/procesos/{pid}").json()["actuaciones"][0]["derivado"]["codigo"] == 3

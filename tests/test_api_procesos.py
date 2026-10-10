@@ -143,7 +143,7 @@ def test_configuracion(admin):
     c = admin.get("/api/config").json()
     semilla = cargar_catalogos()
     assert [x["valor"] for x in c["catalogos"]["cuadernos"]] == semilla["cuadernos"]
-    assert len(c["terminos"]) == 49 and len(c["rutas"]) == 6 and len(c["plantillas"]) == 7
+    assert len(c["terminos"]) == 49 and len(c["rutas"]) == 7 and len(c["plantillas"]) == 7
     assert c["juzgado"]["prefijo"] == "54-172-40-89-001-" and c["tiene_membrete"] is True
     assert c["tipo_ruta"]["Recurso de apelación"] == "r_recurso"
     assert len(c["situaciones"]) == 10 and c["sugerencias_termino"]["Nulidad"] == "Traslado escrito de nulidad"
@@ -177,7 +177,7 @@ def test_configuracion(admin):
     assert admin.put("/api/config/tipo-ruta", json={"tipo_solicitud": "Oficio", "ruta_id": None}).json()["ruta_id"] is None
     assert admin.delete(f"/api/config/rutas/{ruta['id']}").status_code == 204
     c = admin.get("/api/config").json()
-    assert "Memorial" not in c["tipo_ruta"] and "Oficio" not in c["tipo_ruta"] and len(c["rutas"]) == 6
+    assert "Memorial" not in c["tipo_ruta"] and "Oficio" not in c["tipo_ruta"] and len(c["rutas"]) == 7
 
     # juzgado y membrete
     assert admin.put("/api/config/juzgado", json={"juzgado": "JUZGADO X", "ciudad": "CÚCUTA", "prefijo": "54-"}).status_code == 200

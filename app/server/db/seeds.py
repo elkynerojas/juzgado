@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from functools import cache
 from pathlib import Path
 
 from sqlalchemy import select
@@ -31,11 +32,31 @@ CATALOGOS = {
     "macroetapas": ("macroetapas",),
     "asuntos_civil": ("asuntos", "civil"),
     "asuntos_familia": ("asuntos", "familia"),
+    "cargos": ("cargos",),
 }
 
 
 def cargar_catalogos() -> dict:
     return json.loads((SEED_DIR / "catalogos.json").read_text(encoding="utf-8"))
+
+
+# Catálogos normativos de SIERJU y penales: de solo lectura, no se guardan en la BD.
+@cache
+def cargar_sierju() -> dict:
+    return json.loads((SEED_DIR / "sierju.json").read_text(encoding="utf-8"))
+
+
+@cache
+def cargar_secciones_sierju() -> list[dict]:
+    return json.loads((SEED_DIR / "sierju_secciones.json").read_text(encoding="utf-8"))
+
+
+@cache
+def cargar_mapa_plantilla() -> dict:
+    return json.loads((SEED_DIR / "sierju_tpl_map.json").read_text(encoding="utf-8"))
+
+
+PLANTILLA_SIERJU = SEED_DIR / "sierju_plantilla.xlsx"
 
 
 def sembrar(s: Session) -> bool:

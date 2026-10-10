@@ -61,6 +61,8 @@ def paso_dict(p) -> dict:
         "origen": p.origen,
         "termino": p.termino,
         "descripcion": p.descripcion,
+        "es_audiencia": p.es_audiencia,
+        "aud_estado": p.aud_estado,
     }
 
 

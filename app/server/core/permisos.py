@@ -9,6 +9,11 @@ PERMISOS: dict[str, str] = {
     "actuaciones.editar": "Editar actuaciones",
     "actuaciones.eliminar": "Eliminar actuaciones",
     "documentos.generar": "Generar constancias y pases al despacho",
+    "audiencias.ver": "Ver el control de audiencias",
+    "audiencias.gestionar": "Fijar, resolver y reprogramar audiencias",
+    "estadistica.ver": "Ver la estadística SIERJU",
+    "estadistica.registrar": "Registrar y borrar datos estadísticos manuales",
+    "estadistica.exportar": "Exportar la estadística (Excel oficial, genérico y bitácora)",
     "paquetes.ver": "Ver la gestión por paquetes",
     "paquetes.exportar": "Imprimir y exportar listas de paquetes",
     "config.catalogos": "Configurar catálogos",
@@ -17,6 +22,7 @@ PERMISOS: dict[str, str] = {
     "config.calendario": "Configurar el calendario judicial",
     "config.plantillas": "Configurar plantillas y firmantes",
     "config.juzgado": "Configurar datos del juzgado y membrete",
+    "config.personal": "Configurar el personal del despacho y sus cargos",
     "respaldo.exportar": "Exportar respaldos",
     "respaldo.restaurar": "Restaurar respaldos y cargar datos de ejemplo",
     "respaldo.vaciar": "Vaciar todos los procesos",
@@ -27,7 +33,7 @@ PERMISOS: dict[str, str] = {
 
 ROL_ADMIN = "Administrador"
 
-_LECTURA = ["procesos.ver", "actuaciones.ver", "paquetes.ver"]
+_LECTURA = ["procesos.ver", "actuaciones.ver", "paquetes.ver", "audiencias.ver", "estadistica.ver"]
 _OPERACION = [
     *_LECTURA,
     "procesos.crear",
@@ -37,6 +43,7 @@ _OPERACION = [
     "actuaciones.editar",
     "documentos.generar",
     "paquetes.exportar",
+    "audiencias.gestionar",
 ]
 
 # El rol Administrador es de sistema: siempre tiene todos los permisos y no se edita.
@@ -44,7 +51,14 @@ ROLES_SEMILLA: dict[str, tuple[str, list[str]]] = {
     ROL_ADMIN: ("Acceso total al sistema", []),
     "Juez": (
         "Consulta, notas, decisiones y documentos",
-        [*_LECTURA, "procesos.notas", "actuaciones.editar", "documentos.generar", "paquetes.exportar"],
+        [
+            *_LECTURA,
+            "procesos.notas",
+            "actuaciones.editar",
+            "documentos.generar",
+            "paquetes.exportar",
+            "estadistica.exportar",
+        ],
     ),
     "Secretario": (
         "Gestión completa de procesos y configuración",
@@ -54,6 +68,8 @@ ROLES_SEMILLA: dict[str, tuple[str, list[str]]] = {
             "actuaciones.eliminar",
             *(p for p in PERMISOS if p.startswith("config.")),
             "respaldo.exportar",
+            "estadistica.registrar",
+            "estadistica.exportar",
         ],
     ),
     "Escribiente": ("Registro y trámite de procesos y actuaciones", _OPERACION),

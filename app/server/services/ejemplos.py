@@ -5,11 +5,14 @@ from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from app.server.db.conversion import actuacion_desde_legacy, proceso_desde_legacy
-from app.server.db.models import Actuacion, Proceso, nuevo_id
+from app.server.db.models import Actuacion, Proceso, StatEvento, nuevo_id
 from app.server.db.seeds import SEED_DIR
+from app.server.services.sierju import completar_tipos_sierju
 
 
 def vaciar(s: Session) -> None:
+    """Borra procesos, actuaciones y datos estadísticos manuales; la configuración y el personal se conservan."""
+    s.execute(delete(StatEvento))
     s.execute(delete(Actuacion))
     s.execute(delete(Proceso))
 
@@ -32,4 +35,5 @@ def cargar_ejemplos(s: Session, hoy: date | None = None) -> int:
     s.flush()
     for a in datos["actuaciones"]:
         s.add(actuacion_desde_legacy({**resolver(a), "id": nuevo_id(), "procesoId": ids[a["procesoId"]]}))
+    completar_tipos_sierju(s)
     return len(datos["procesos"])

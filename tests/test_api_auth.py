@@ -46,7 +46,9 @@ def test_bloqueo_por_intentos(app, admin):
 
 def test_permisos_por_rol(admin, crear_usuario):
     consulta = crear_usuario("lectora", "Consulta")
-    assert set(consulta.get("/api/me").json()["permisos"]) == {"procesos.ver", "actuaciones.ver", "paquetes.ver"}
+    assert set(consulta.get("/api/me").json()["permisos"]) == {
+        "procesos.ver", "actuaciones.ver", "paquetes.ver", "audiencias.ver", "estadistica.ver",
+    }  # fmt: skip
     assert consulta.get("/api/procesos").status_code == 200
     assert consulta.get("/api/paquetes").status_code == 200
     assert consulta.get("/api/config").status_code == 200

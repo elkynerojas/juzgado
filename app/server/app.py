@@ -11,6 +11,7 @@ from app.server.db.migrate import actualizar
 from app.server.db.seeds import sembrar, sembrar_roles
 from app.server.db.session import crear_engine, crear_sesiones
 from app.server.services import programador
+from app.server.services.sierju import completar_tipos_sierju
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
@@ -32,6 +33,8 @@ def create_app(engine: Engine | None = None, respaldos: Path | None = None, tare
     with sesiones() as s:
         sembrar(s)
         sembrar_roles(s)
+        completar_tipos_sierju(s)
+        s.commit()
 
     app = FastAPI(title="Control de Procesos", docs_url="/api/docs", openapi_url="/api/openapi.json")
     app.state.sesiones = sesiones
