@@ -9,7 +9,7 @@
 | 2. API | Hecha | 67 endpoints: sesión, usuarios y roles, procesos, actuaciones, tablero, paquetes, configuración, documentos, auditoría. Se exploran en `/api/docs`. |
 | 3. Frontend | Hecha | Pantallas originales conectadas a la API, ingreso, usuarios, roles y auditoría. Probado en navegador; falta probar impresión y exportación dentro de la ventana en Windows. |
 | 4. Respaldos | Hecha | Exportar y restaurar JSON, formato del HTML original, respaldo automático diario con rotación y respaldo previo a cada restauración. |
-| 5. Escritorio y empaquetado | Escrita, sin construir | Asistente Servidor/Cliente probado en la ventana real (Mac). Bandeja, `.exe` e instalador están escritos pero solo se pueden construir y probar en Windows: `packaging\construir.ps1` o el flujo de GitHub Actions. |
+| 5. Escritorio y empaquetado | Construida | Asistente Servidor/Cliente probado en la ventana real (Mac). El instalador ya se construye en Windows con `packaging\construir.ps1` (77 pruebas en verde). Falta probar en el despacho la bandeja, la impresión y la conexión entre dos equipos. |
 | 6. Verificación final | Pendiente | |
 
 Cómo ver el avance: `uv run pytest` (pruebas) y `uv run control-procesos` (app). Otras opciones: `--sin-ventana` (solo servidor, para entrar por navegador), `--cliente URL`, `--reconfigurar`.

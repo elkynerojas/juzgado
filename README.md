@@ -117,4 +117,4 @@ El resultado queda en `dist\ControlProcesos-Setup-<versión>.exe`. También lo c
 
 ## Estado
 
-El desarrollo está completo y probado en macOS. Falta construir el instalador y verificar en Windows la impresión y PDF, el guardado de archivos, el icono de bandeja y la conexión entre dos equipos.
+El desarrollo está completo. Las pruebas pasan en Windows y el instalador ya se construye: `dist\ControlProcesos-Setup-1.1.exe`. Falta verificar en el despacho la impresión y PDF, el guardado de archivos, el icono de bandeja y la conexión entre dos equipos.
