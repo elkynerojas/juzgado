@@ -8,7 +8,7 @@ from app.server.db.seeds import cargar_catalogos, sembrar
 ESPERADAS = {
     "actuaciones", "auditoria", "cal_dias", "cal_suspensiones", "catalogos", "config", "festivos", "firmantes",
     "plantillas", "procesos", "rol_permisos", "roles", "ruta_pasos", "rutas", "sesiones", "terminos", "tipo_ruta",
-    "usuarios",
+    "usuarios", "personal", "proceso_solicitudes_penales", "stat_eventos",
 }  # fmt: skip
 
 
@@ -33,13 +33,13 @@ def test_semillas_una_sola_vez(sesion):
     assert sembrar(sesion) is False
     assert contar(sesion, m.Festivo) == len(d["festivos"]) == 91
     assert contar(sesion, m.Termino) == len(d["terminos"]) == 49
-    assert contar(sesion, m.Ruta) == 6
+    assert contar(sesion, m.Ruta) == 7
     assert contar(sesion, m.Plantilla) == 7
     assert contar(sesion, m.TipoRuta) == len(d["tipoRuta"])
     tipos = dict(sesion.execute(select(m.Catalogo.tipo, func.count()).group_by(m.Catalogo.tipo)).all())
     assert tipos == {
-        "materias": 23, "tipos_solicitud": 68, "cuadernos": 23, "macroetapas": 17,
-        "asuntos_civil": 56, "asuntos_familia": 33,
+        "materias": 23, "tipos_solicitud": 69, "cuadernos": 24, "macroetapas": 17,
+        "asuntos_civil": 56, "asuntos_familia": 33, "cargos": 5,
     }  # fmt: skip
     ruta = sesion.get(m.Ruta, "r_traslado")
     assert [p.nombre for p in ruta.pasos] == ["Correr traslado", "Resolver (decisión del despacho)", "Ejecutoria y notificación"]

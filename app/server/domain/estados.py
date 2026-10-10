@@ -214,7 +214,12 @@ def global_stats(acts: Iterable, ctx: Contexto) -> dict:
         if viva(c) and u == "Secretaría":
             en_secretaria += 1
         if c == 1 and (f := fecha_activa(a, ctx)):
-            proximos.append((f, a))
+            proximos.append((f, a, a.descripcion))
+        # v2: también avisa cuándo queda en firme una providencia notificada sin recurso
+        if a.notif_fecha and not a.recurso_tipo:
+            ev = calc_venc(a.notif_fecha, a.ejec_dias or 3, True, ctx.calendario)
+            if ev and ev >= ctx.hoy:
+                proximos.append((ev, a, f"Ejecutoria/recursos — {a.descripcion or ''}"))
     proximos.sort(key=lambda x: x[0])
     return {
         "sin_constancia": por_situacion[3],

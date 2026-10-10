@@ -9,7 +9,7 @@ from pathlib import Path
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.server.db.conversion import actuacion_desde_legacy, proceso_desde_legacy
+from app.server.db.conversion import actuacion_desde_legacy, proceso_desde_legacy, stat_evento_desde_legacy
 from app.server.db.models import (
     Actuacion,
     CalDia,
@@ -18,6 +18,7 @@ from app.server.db.models import (
     Config,
     Festivo,
     Firmante,
+    Personal,
     Plantilla,
     Proceso,
     Rol,
@@ -25,6 +26,8 @@ from app.server.db.models import (
     Ruta,
     RutaPaso,
     Sesion,
+    SolicitudPenal,
+    StatEvento,
     Termino,
     TipoRuta,
     Usuario,
@@ -33,9 +36,10 @@ from app.server.db.seeds import CATALOGOS
 from app.server.services.documentos import data_uri
 from app.server.services.ejemplos import vaciar
 from app.server.services.serial import a_dict
+from app.server.services.sierju import completar_tipos_sierju
 
 FORMATO = "control-procesos"
-VERSION = 3
+VERSION = 4
 CLAVES_JUZGADO = ("juzgado", "ciudad", "prefijo")
 MEMBRETE = "membrete"
 PREFIJO_AUTO = "respaldo_auto"
@@ -50,8 +54,10 @@ _CATALOGOS_LEGACY = {
     "macroetapas": ("macroetapas",),
     "asuntos_civil": ("asuntos", "civil"),
     "asuntos_familia": ("asuntos", "familia"),
+    "cargos": ("roles",),
 }
 _PASO = ("nombre", "materia", "origen", "termino", "descripcion")
+_PASO_AUD = ("es_audiencia", "aud_estado")
 
 
 class RespaldoInvalido(ValueError):
@@ -64,10 +70,15 @@ class RespaldoInvalido(ValueError):
 def exportar(s: Session) -> dict:
     usuarios = {u.id: u.usuario for u in s.scalars(select(Usuario))}
 
-    def con_autores(obj) -> dict:
+    def con_autores(obj, *campos: str) -> dict:
         d = a_dict(obj)
-        d["creado_por"] = usuarios.get(obj.creado_por)
-        d["actualizado_por"] = usuarios.get(obj.actualizado_por)
+        for campo in campos or ("creado_por", "actualizado_por"):
+            d[campo] = usuarios.get(getattr(obj, campo))
+        return d
+
+    def proceso(p: Proceso) -> dict:
+        d = con_autores(p)
+        d["solicitudes_penales"] = [_sin(a_dict(x), "proceso_id") for x in p.solicitudes_penales]
         return d
 
     cfg = {c.clave: c for c in s.scalars(select(Config))}
@@ -80,8 +91,11 @@ def exportar(s: Session) -> dict:
         "formato": FORMATO,
         "version": VERSION,
         "generado": datetime.now().isoformat(timespec="seconds"),
-        "procesos": [con_autores(p) for p in s.scalars(select(Proceso).order_by(Proceso.creado_en))],
+        "procesos": [proceso(p) for p in s.scalars(select(Proceso).order_by(Proceso.creado_en))],
         "actuaciones": [con_autores(a) for a in s.scalars(select(Actuacion).order_by(Actuacion.creado_en))],
+        "stat_eventos": [
+            con_autores(e, "creado_por") for e in s.scalars(select(StatEvento).order_by(StatEvento.fecha, StatEvento.creado_en))
+        ],
         "config": {
             "juzgado": {k: cfg[k].valor if k in cfg else "" for k in CLAVES_JUZGADO},
             "membrete": data_uri(membrete.binario, membrete.valor) if membrete and membrete.binario else None,
@@ -95,7 +109,7 @@ def exportar(s: Session) -> dict:
                     "id": r.id,
                     "nombre": r.nombre,
                     "descripcion": r.descripcion,
-                    "pasos": [{k: getattr(p, k) for k in _PASO} for p in r.pasos],
+                    "pasos": [{k: getattr(p, k) for k in _PASO + _PASO_AUD} for p in r.pasos],
                 }
                 for r in s.scalars(select(Ruta).order_by(Ruta.orden))
             ],
@@ -118,6 +132,7 @@ def exportar(s: Session) -> dict:
                 }
                 for f in s.scalars(select(Firmante).order_by(Firmante.orden, Firmante.nombre))
             ],
+            "personal": [a_dict(x) for x in s.scalars(select(Personal).order_by(Personal.nombre))],
         },
         "plantillas": [a_dict(p) for p in s.scalars(select(Plantilla).order_by(Plantilla.tipo, Plantilla.nombre))],
         "roles": [
@@ -144,16 +159,35 @@ def exportar(s: Session) -> dict:
     }
 
 
+def _sin(d: dict, *claves: str) -> dict:
+    for k in claves:
+        d.pop(k, None)
+    return d
+
+
 # ---------- leer ----------
 
 
+def _proceso_legacy(d: dict) -> dict:
+    p = proceso_desde_legacy(d)
+    out = a_dict(p)
+    out["solicitudes_penales"] = [_sin(a_dict(x), "proceso_id") for x in p.solicitudes_penales]
+    return out
+
+
+def _paso_legacy(p: dict) -> dict:
+    return {**{k: p.get(k) or "" for k in _PASO}, "es_audiencia": bool(p.get("esAudiencia")), "aud_estado": p.get("audEstado") or ""}
+
+
 def _de_legacy(d: dict) -> dict:
-    """Convierte la exportación del HTML original al formato propio."""
+    """Convierte la exportación del HTML original (v1 o v2) al formato propio."""
     out = {
         "formato": "legacy",
-        "procesos": [a_dict(proceso_desde_legacy(p)) for p in d["procesos"]],
+        "procesos": [_proceso_legacy(p) for p in d["procesos"]],
         "actuaciones": [a_dict(actuacion_desde_legacy(a)) for a in d["actuaciones"]],
     }
+    if isinstance(d.get("statEventos"), list):
+        out["stat_eventos"] = [a_dict(stat_evento_desde_legacy(e)) for e in d["statEventos"] if isinstance(e, dict) and e.get("fecha")]
     if isinstance(d.get("plantillas"), list):
         out["plantillas"] = d["plantillas"]
     c = d.get("config")
@@ -184,7 +218,12 @@ def _de_legacy(d: dict) -> dict:
         ]
     if isinstance(c.get("rutas"), list):
         cfg["rutas"] = [
-            {"id": r.get("id"), "nombre": r.get("nombre"), "descripcion": r.get("desc") or "", "pasos": r.get("pasos") or []}
+            {
+                "id": r.get("id"),
+                "nombre": r.get("nombre"),
+                "descripcion": r.get("desc") or "",
+                "pasos": [_paso_legacy(p) for p in r.get("pasos") or []],
+            }
             for r in c["rutas"]
         ]
         cfg["tipo_ruta"] = c.get("tipoRuta") or {}
@@ -192,6 +231,12 @@ def _de_legacy(d: dict) -> dict:
         cfg["calendario"] = {k: c["calendario"].get(k) or [] for k in ("suspensiones", "cerrados", "reabiertos")}
     if isinstance(c.get("firmantes"), list):
         cfg["firmantes"] = c["firmantes"]
+    if isinstance(c.get("personal"), list):
+        cfg["personal"] = [
+            {"id": x.get("id"), "nombre": x.get("nombre"), "cargo": x.get("rol") or "", "activo": True}
+            for x in c["personal"]
+            if isinstance(x, dict)
+        ]
     out["config"] = cfg
     return out
 
@@ -309,7 +354,13 @@ def _restaurar_config(s: Session, cfg: dict, plantillas) -> None:
                 continue
             ids.add(r["id"])
             pasos = [
-                RutaPaso(orden=j, nombre=p.get("nombre") or f"Paso {j + 1}", **{k: p.get(k) or "" for k in _PASO[1:]})
+                RutaPaso(
+                    orden=j,
+                    nombre=p.get("nombre") or f"Paso {j + 1}",
+                    es_audiencia=bool(p.get("es_audiencia")),
+                    aud_estado=p.get("aud_estado") or "",
+                    **{k: p.get(k) or "" for k in _PASO[1:]},
+                )
                 for j, p in enumerate(r.get("pasos") or [])
             ]
             s.add(Ruta(id=r["id"], nombre=r.get("nombre") or r["id"], descripcion=r.get("descripcion") or "", orden=i, pasos=pasos))
@@ -334,6 +385,14 @@ def _restaurar_config(s: Session, cfg: dict, plantillas) -> None:
             firma, mime = _binario(f.get("firma"))
             extra = {"id": f["id"]} if f.get("id") else {}
             s.add(Firmante(nombre=f.get("nombre") or "", cargo=f.get("cargo") or "", firma=firma, firma_mime=mime, orden=i, **extra))
+    if "personal" in cfg:
+        s.execute(delete(Personal))
+        ids = set()
+        for x in cfg["personal"]:
+            if not x.get("nombre") or (x.get("id") and x["id"] in ids):
+                continue
+            ids.add(x.get("id"))
+            s.add(_modelo(Personal, x))
     if plantillas is not None:
         s.execute(delete(Plantilla))
         s.add_all(_modelo(Plantilla, p) for p in plantillas if p.get("nombre") and p.get("tipo"))
@@ -360,7 +419,11 @@ def restaurar(s: Session, datos, incluir_usuarios: bool = False) -> dict:
             if not p.get("id") or p["id"] in ids:
                 raise RespaldoInvalido("Hay procesos sin identificador o repetidos")
             ids.add(p["id"])
-            s.add(_modelo(Proceso, p, **autores(p)))
+            proceso = _modelo(Proceso, p, **autores(p))
+            proceso.solicitudes_penales = [
+                _modelo(SolicitudPenal, {**x, "orden": i}, proceso_id=p["id"]) for i, x in enumerate(p.get("solicitudes_penales") or [])
+            ]
+            s.add(proceso)
         s.flush()
         omitidas = 0
         for a in n["actuaciones"]:
@@ -368,7 +431,18 @@ def restaurar(s: Session, datos, incluir_usuarios: bool = False) -> dict:
                 omitidas += 1
                 continue
             s.add(_modelo(Actuacion, a, **autores(a)))
+        eventos = 0
+        for e in n.get("stat_eventos") or []:
+            if not e.get("fecha") or not e.get("seccion"):
+                continue
+            # un evento manual sobrevive aunque su proceso no venga en el respaldo
+            enlace = e.get("proceso_id") if e.get("proceso_id") in ids else None
+            s.add(_modelo(StatEvento, e, proceso_id=enlace, creado_por=ids_usuario.get(e.get("creado_por"))))
+            eventos += 1
         s.flush()
+        if n["formato"] != FORMATO or n["version"] < 4:
+            # el campo no existía: se sugiere como hacía la v2 al abrir datos viejos
+            completar_tipos_sierju(s)
     except RespaldoInvalido:
         raise
     except Exception as e:  # dato mal formado o que viola una restricción de la base
@@ -378,6 +452,7 @@ def restaurar(s: Session, datos, incluir_usuarios: bool = False) -> dict:
         "procesos": len(ids),
         "actuaciones": len(n["actuaciones"]) - omitidas,
         "actuaciones_omitidas": omitidas,
+        "stat_eventos": eventos,
         "usuarios_restaurados": usuarios,
     }
 

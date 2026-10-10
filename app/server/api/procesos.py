@@ -181,11 +181,11 @@ def tablero(s: Session = Depends(get_db), _=Depends(requiere("procesos.ver"))):
         {
             "proceso_id": a.proceso_id,
             "radicado": radicados.get(a.proceso_id, "?"),
-            "descripcion": a.descripcion,
+            "descripcion": desc,
             "fecha": iso(f),
             "faltan": (f - ctx.hoy).days,
         }
-        for f, a in st["proximos"][:10]
+        for f, a, desc in st["proximos"][:10]
     ]
     st["por_situacion"] = [
         {"codigo": c, "situacion": E.SIT[c], "badge": E.SIT_BADGE[c], "total": n}

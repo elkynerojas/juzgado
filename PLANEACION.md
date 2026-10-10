@@ -11,6 +11,12 @@
 | 4. Respaldos | Hecha | Exportar y restaurar JSON, formato del HTML original, respaldo automático diario con rotación y respaldo previo a cada restauración. |
 | 5. Escritorio y empaquetado | Construida | Asistente Servidor/Cliente probado en la ventana real (Mac). El instalador ya se construye en Windows con `packaging\construir.ps1` (77 pruebas en verde). Falta probar en el despacho la bandeja, la impresión y la conexión entre dos equipos. |
 | 6. Verificación final | Pendiente | |
+| 7. Modelo, migración y semillas v2 | Hecha | Migración `0002` (columnas con `add_column` directo para no disparar el borrado en cascada; datos solo si la BD ya estaba sembrada). Semillas y plantilla SIERJU extraídas de la v2 (`node scripts/extraer_semillas.mjs`). Respaldo versión 4; importa el JSON del HTML v2. 6 permisos nuevos. |
+| 8. Dominio v2 con golden | Hecha | `domain/naturaleza.py`, `domain/secretaria.py` y `domain/automatismos.py` (puro: devuelve las actuaciones nuevas; se conecta a la API en la fase 9). Ejecutorias en el tablero. Tipo SIERJU sugerido a procesos viejos al iniciar, al restaurar formatos sin el campo y al cargar ejemplos. Golden: `node scripts/generar_golden_v2.mjs`. |
+| 9. API y frontend de procesos/actuaciones v2 | Pendiente | |
+| 10. Audiencias | Pendiente | |
+| 11. Estadística SIERJU | Pendiente | |
+| 12. Ejemplos, manual y cierre v1.2 | Pendiente | |
 
 Cómo ver el avance: `uv run pytest` (pruebas) y `uv run control-procesos` (app). Otras opciones: `--sin-ventana` (solo servidor, para entrar por navegador), `--cliente URL`, `--reconfigurar`.
 
@@ -113,6 +119,94 @@ Los catálogos por defecto (términos, asuntos, rutas, plantillas, festivos, mem
 4. **Respaldos**: exportar, restaurar, formato viejo, automáticos.
 5. **Escritorio y empaquetado**: asistente Servidor/Cliente (config en `%APPDATA%`), bandeja, PyInstaller, instalador Inno Setup con acceso directo y regla de firewall para el puerto.
 6. **Verificación final** en dos equipos Windows.
+
+## Novedades de la v2 (`legacy/control_procesos_v2.html`)
+
+La v2 no cambia las reglas base (`codigo`, `ubicacion`, `vencimiento`, `estTermino`, `procDeriv`, `calcVenc`), ni `TERMINOS`, `ASUNTOS`, `seed`, `doExport` o `doImport`. Agrega módulos completos.
+
+**Inventario**
+- **Naturalezas nuevas:** Penal (`Penal {906|1826} - {Garantías|Conocimiento}`), Tutela, Incidente de desacato y Hábeas corpus.
+- **Campos nuevos del proceso:**
+  - `tipoSierju`, `via`
+  - terminación, archivo y forma de salida
+  - CUI, solicitudes penales (lista) y delitos adicionales
+  - tipo de entrada
+  - trámite posterior
+  - tutela: impugnación, segunda instancia y medida
+  - desacato: tutela, requerimiento, apertura y consulta
+  - cuaderno inicial y cuadernos propios
+- **Campos nuevos de la actuación:**
+  - tipo de trámite posterior, persona asignada, tipo de providencia y modo de cierre
+  - audiencia: fecha, hora, tipo, estado, causa e inmediata
+  - recursos y resultado en el superior
+  - notificación y ejecutoria
+  - remate y amparo de pobreza
+- **Automatismos:**
+  - la constancia y el pase quedan en el siguiente día hábil;
+  - la ejecutoria se calcula con la notificación y los recursos;
+  - al crear un proceso se crea sola su actuación inicial;
+  - la gestión de Garantías y la cancelación de su audiencia se generan solas;
+  - cuadernos de incidente numerados.
+- **Audiencias:**
+  - fijar, resolver y reprogramar;
+  - panel con filtros;
+  - pendientes por confirmar.
+- **Estadística SIERJU:**
+  - clasificación difusa en filas y columnas;
+  - eventos automáticos y manuales;
+  - inventario;
+  - exportación al Excel oficial (plantilla), Excel genérico y bitácora CSV.
+- **UI:**
+  - filtros nuevos en Procesos (año, situación, ubicación, área) y rango de fechas en Paquetes;
+  - borradores automáticos;
+  - "Personal y cargos";
+  - paletas rápidas;
+  - manual operativo.
+
+**Decisiones**
+- Los bugs de la v2 se corrigen al portar:
+  - causas de cancelación que no llegan a SIERJU;
+  - columna COL6828 perdida;
+  - causas de `saveAudiencia`;
+  - naturalezas penales inalcanzables;
+  - desacato en `sugSierju`;
+  - ruta `r_garantias` ausente en BD viejas;
+  - forma de salida oculta.
+- El motor viejo de estadística no se migra.
+- El personal es un catálogo aparte de los usuarios.
+- Audiencias tiene pestaña propia con contador.
+- Los catálogos SIERJU y penales van en `seed/sierju.json`, de solo lectura. La plantilla oficial queda en `seed/sierju_plantilla.xlsx` y se llena con `zipfile` + XML, sin dependencias nuevas.
+
+**Fases**
+
+7. **Modelo, migración y semillas v2:**
+   - columnas nuevas;
+   - tablas `proceso_solicitudes_penales`, `personal` y `stat_eventos`;
+   - migración `0002` con datos ("Demanda", cuaderno "Incidente de desacato", ruta `r_garantias`, cargos);
+   - extraer las semillas de la v2;
+   - permisos `audiencias.*`, `estadistica.*` y `config.personal`;
+   - respaldo `VERSION=4` e importación del formato del HTML v2.
+8. **Dominio v2:**
+   - `domain/naturaleza.py`, `domain/secretaria.py` y `services/automatismos.py`;
+   - ejecutorias en `global_stats`;
+   - golden generados desde la v2 con Node.
+9. **API y frontend de procesos y actuaciones:**
+   - esquemas ampliados;
+   - `ovProc` dinámico y `ovAct` en 3 fases;
+   - filtros nuevos;
+   - detalle ampliado;
+   - CUI en los documentos;
+   - borradores por usuario;
+   - personal y paletas.
+10. **Audiencias:** `api/audiencias.py`, `domain/audiencias.py`, la pestaña con contador y los modales para fijar y resolver.
+11. **Estadística SIERJU:**
+    - `domain/sierju/`, `services/sierju_excel.py` y `api/estadistica.py`;
+    - la pestaña Estadística;
+    - comparación celda por celda contra el `doFillTemplate` de la v2.
+12. **Ejemplos, manual y cierre:**
+    - ejemplos penales y constitucionales;
+    - el manual operativo de la v2 pasado al `.docx`/PDF;
+    - versión 1.2.
 
 ## Verificación
 

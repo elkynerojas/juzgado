@@ -86,10 +86,58 @@ class Proceso(_Rastreable, Base):
     situacion: Mapped[str] = mapped_column(String(40), default="Activo")
     macroetapa: Mapped[str] = mapped_column(String(120), default="")
     notas: Mapped[str] = mapped_column(Text, default="")
+    # estadística SIERJU: tipo de proceso (o delito / derecho invocado), vía, ingreso y salida
+    tipo_sierju: Mapped[str] = mapped_column(String(300), default="")
+    via: Mapped[str] = mapped_column(String(20), default="Oral")
+    tipo_entrada: Mapped[str] = mapped_column(String(200), default="")
+    fecha_terminacion: Mapped[date | None]
+    fecha_archivo: Mapped[date | None]
+    forma_salida: Mapped[str] = mapped_column(String(200), default="")
+    tramite_posterior: Mapped[bool] = mapped_column(default=False)
+    fecha_tramite_posterior: Mapped[date | None]
+    # penal
+    noticia_criminal: Mapped[str] = mapped_column(String(60), default="")
+    solicitud_penal: Mapped[str] = mapped_column(String(300), default="")
+    delitos_adicionales: Mapped[list] = mapped_column(JSON, default=list)
+    # tutela
+    impugnacion: Mapped[str] = mapped_column(String(10), default="")
+    fecha_impugnacion: Mapped[date | None]
+    decision_2da: Mapped[str] = mapped_column(String(200), default="")
+    medida_tutela: Mapped[str] = mapped_column(String(10), default="")
+    # incidente de desacato
+    des_tutela: Mapped[str] = mapped_column(String(60), default="")
+    des_req: Mapped[date | None]
+    des_apertura: Mapped[str] = mapped_column(String(40), default="")
+    des_consulta: Mapped[str] = mapped_column(String(40), default="")
+    cuaderno_inicial: Mapped[str] = mapped_column(String(120), default="Principal")
+    # cuadernos abiertos aunque todavía no tengan actuaciones
+    cuadernos: Mapped[list] = mapped_column(JSON, default=list)
 
     actuaciones: Mapped[list["Actuacion"]] = relationship(
         cascade="all, delete-orphan", passive_deletes=True, back_populates="proceso"
     )
+    solicitudes_penales: Mapped[list["SolicitudPenal"]] = relationship(
+        cascade="all, delete-orphan", passive_deletes=True, order_by="SolicitudPenal.orden", back_populates="proceso"
+    )
+
+
+class SolicitudPenal(Base):
+    """Cada solicitud de control de garantías radicada en un proceso penal."""
+
+    __tablename__ = "proceso_solicitudes_penales"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=nuevo_id)
+    proceso_id: Mapped[str] = mapped_column(ForeignKey("procesos.id", ondelete="CASCADE"), index=True)
+    orden: Mapped[int] = mapped_column(default=0)
+    tipo: Mapped[str] = mapped_column(String(300), default="")
+    fecha: Mapped[date | None]
+    entrada: Mapped[str] = mapped_column(String(60), default="Nueva solicitud")
+    salida: Mapped[str] = mapped_column(String(60), default="")
+    fecha_salida: Mapped[date | None]
+    hora_salida: Mapped[str] = mapped_column(String(5), default="")
+    detalle_salida: Mapped[str] = mapped_column(String(300), default="")
+
+    proceso: Mapped[Proceso] = relationship(back_populates="solicitudes_penales")
 
 
 class Actuacion(_Rastreable, Base):
@@ -118,6 +166,38 @@ class Actuacion(_Rastreable, Base):
     obs: Mapped[str] = mapped_column(Text, default="")
     ruta_id: Mapped[str] = mapped_column(String(32), default="")
     paso_idx: Mapped[int | None]
+    tp_tipo: Mapped[str] = mapped_column(String(120), default="")
+    asignado_a: Mapped[str] = mapped_column(String(200), default="")
+    tipo_providencia: Mapped[str] = mapped_column(String(40), default="")
+    modo_cierre: Mapped[str] = mapped_column(String(40), default="")
+    salida_stat: Mapped[str] = mapped_column(String(200), default="")
+    entrada_stat: Mapped[str] = mapped_column(String(200), default="")
+    # audiencia
+    es_audiencia: Mapped[bool] = mapped_column(default=False)
+    aud_fecha: Mapped[date | None]
+    aud_hora: Mapped[str] = mapped_column(String(5), default="")
+    aud_estado: Mapped[str] = mapped_column(String(40), default="")
+    aud_tipo: Mapped[str] = mapped_column(String(200), default="")
+    aud_causa: Mapped[str] = mapped_column(String(300), default="")
+    aud_inmediata: Mapped[bool] = mapped_column(default=False)
+    # audiencia que esta actuación da por cancelada (gestión automática de garantías)
+    cancelacion_de: Mapped[str] = mapped_column(String(32), default="")
+    # recursos
+    recurso_tipo: Mapped[str] = mapped_column(String(40), default="")
+    recurso_fecha: Mapped[date | None]
+    recurso_objeto: Mapped[str] = mapped_column(String(20), default="")
+    rec_traslado: Mapped[date | None]
+    superior_resultado: Mapped[str] = mapped_column(String(200), default="")
+    superior_fecha: Mapped[date | None]
+    rec_impug: Mapped[str] = mapped_column(String(5), default="")
+    rec_impug_result: Mapped[str] = mapped_column(String(200), default="")
+    rec_impug_fecha: Mapped[date | None]
+    remate_realizado: Mapped[bool] = mapped_column(default=False)
+    amparo_pobreza_concedido: Mapped[bool] = mapped_column(default=False)
+    # notificación y ejecutoria
+    notif_fecha: Mapped[date | None]
+    notif_forma: Mapped[str] = mapped_column(String(40), default="")
+    ejec_dias: Mapped[int] = mapped_column(default=3)
 
     proceso: Mapped[Proceso] = relationship(back_populates="actuaciones")
 
@@ -168,6 +248,8 @@ class RutaPaso(Base):
     origen: Mapped[str] = mapped_column(String(60), default="Memorial")
     termino: Mapped[str] = mapped_column(String(200), default="")
     descripcion: Mapped[str] = mapped_column(Text, default="")
+    es_audiencia: Mapped[bool] = mapped_column(default=False)
+    aud_estado: Mapped[str] = mapped_column(String(40), default="")
 
     ruta: Mapped[Ruta] = relationship(back_populates="pasos")
 
@@ -222,6 +304,34 @@ class Firmante(Base):
     firma: Mapped[bytes | None] = mapped_column(LargeBinary)
     firma_mime: Mapped[str] = mapped_column(String(40), default="")
     orden: Mapped[int] = mapped_column(default=0)
+
+
+class Personal(Base):
+    """Personal del despacho al que se asignan actuaciones y audiencias; no son usuarios del sistema."""
+
+    __tablename__ = "personal"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=nuevo_id)
+    nombre: Mapped[str] = mapped_column(String(200))
+    cargo: Mapped[str] = mapped_column(String(120), default="")
+    activo: Mapped[bool] = mapped_column(default=True)
+
+
+class StatEvento(Base):
+    """Dato estadístico SIERJU registrado a mano (los automáticos se calculan, no se guardan)."""
+
+    __tablename__ = "stat_eventos"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=nuevo_id)
+    fecha: Mapped[date] = mapped_column(index=True)
+    seccion: Mapped[str] = mapped_column(String(20))
+    fila: Mapped[str] = mapped_column(Text)
+    columna: Mapped[str] = mapped_column(Text)
+    cantidad: Mapped[int] = mapped_column(default=1)
+    proceso_id: Mapped[str | None] = mapped_column(ForeignKey("procesos.id", ondelete="SET NULL"))
+    nota: Mapped[str] = mapped_column(Text, default="")
+    creado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id", ondelete="SET NULL"))
+    creado_en: Mapped[datetime] = mapped_column(default=ahora)
 
 
 class Config(Base):

@@ -540,6 +540,7 @@
   "Queja",
   "Nulidad",
   "Incidente",
+  "Incidente de desacato",
   "Excepciones previas",
   "Excepciones de mérito",
   "Reconvención",
@@ -602,6 +603,7 @@
   "Terminación"
  ],
  "tiposSolicitud": [
+  "Demanda",
   "Memorial",
   "Oficio",
   "Respuesta entidad",
@@ -688,6 +690,40 @@
  },
  "rutas": [
   {
+   "id": "r_garantias",
+   "nombre": "Control de garantías: radicación → auto fija audiencia → audiencia / salida anticipada",
+   "desc": "Una radicación puede contener varias solicitudes. Cada solicitud puede resolverse en audiencia o terminar antes por remisión, retiro u otra salida no efectiva",
+   "pasos": [
+    {
+     "nombre": "Radicación y pase al despacho",
+     "materia": "Audiencia / diligencia",
+     "origen": "Memorial",
+     "termino": "",
+     "descripcion": "Se radican solicitud(es) de control de garantías y pasan al despacho",
+     "es_audiencia": false,
+     "aud_estado": ""
+    },
+    {
+     "nombre": "Auto fija fecha y hora de audiencia",
+     "materia": "Audiencia / diligencia",
+     "origen": "Providencia (auto/sentencia)",
+     "termino": "",
+     "descripcion": "El despacho profiere auto que fija fecha y hora para la audiencia",
+     "es_audiencia": true,
+     "aud_estado": "Programada"
+    },
+    {
+     "nombre": "Audiencia de control de garantías / cierre",
+     "materia": "Audiencia / diligencia",
+     "origen": "Oficiosa",
+     "termino": "",
+     "descripcion": "Si la solicitud sigue vigente se realiza la audiencia; si terminó antes, registre su forma y fecha de salida sin crear audiencia",
+     "es_audiencia": true,
+     "aud_estado": "Realizada"
+    }
+   ]
+  },
+  {
    "id": "r_traslado",
    "nombre": "Traslado → decisión → ejecutoria",
    "desc": "Liquidaciones, objeción a dictamen, excepciones, incidentes con traslado",
@@ -697,21 +733,27 @@
      "materia": "Liquidación de crédito",
      "origen": "Vencimiento de término",
      "termino": "Traslado Liquidación de crédito",
-     "descripcion": "Se corre traslado por Secretaría"
+     "descripcion": "Se corre traslado por Secretaría",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Resolver (decisión del despacho)",
      "materia": "Liquidación de crédito",
      "origen": "Providencia (auto/sentencia)",
      "termino": "",
-     "descripcion": "Vencido el traslado, el despacho resuelve"
+     "descripcion": "Vencido el traslado, el despacho resuelve",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Ejecutoria y notificación",
      "materia": "Liquidación de crédito",
      "origen": "Vencimiento de término",
      "termino": "Ejecutoria de providencia notificada por estado",
-     "descripcion": "Notificada la providencia por estado, corre ejecutoria"
+     "descripcion": "Notificada la providencia por estado, corre ejecutoria",
+     "es_audiencia": false,
+     "aud_estado": ""
     }
    ]
   },
@@ -725,21 +767,27 @@
      "materia": "Admisión / subsanación",
      "origen": "Memorial",
      "termino": "Estudio de admisibilidad",
-     "descripcion": "Repartida la demanda, al despacho para estudio de admisibilidad"
+     "descripcion": "Repartida la demanda, al despacho para estudio de admisibilidad",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Subsanación (si se inadmite)",
      "materia": "Admisión / subsanación",
      "origen": "Vencimiento de término",
      "termino": "Para subsanar demanda",
-     "descripcion": "Inadmitida la demanda; corre término para subsanar"
+     "descripcion": "Inadmitida la demanda; corre término para subsanar",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Nueva decisión (admite / rechaza)",
      "materia": "Admisión / subsanación",
      "origen": "Providencia (auto/sentencia)",
      "termino": "",
-     "descripcion": "Vencido el término de subsanación; el despacho decide admisión o rechazo"
+     "descripcion": "Vencido el término de subsanación; el despacho decide admisión o rechazo",
+     "es_audiencia": false,
+     "aud_estado": ""
     }
    ]
   },
@@ -753,21 +801,27 @@
      "materia": "Terminación / desistimiento",
      "origen": "Memorial",
      "termino": "",
-     "descripcion": "Memorial que el despacho resuelve directamente"
+     "descripcion": "Memorial que el despacho resuelve directamente",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Providencia y notificación",
      "materia": "Terminación / desistimiento",
      "origen": "Providencia (auto/sentencia)",
      "termino": "",
-     "descripcion": "El despacho profiere providencia; se notifica por estado"
+     "descripcion": "El despacho profiere providencia; se notifica por estado",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Ejecutoria",
      "materia": "Terminación / desistimiento",
      "origen": "Vencimiento de término",
      "termino": "Ejecutoria de providencia notificada por estado",
-     "descripcion": "Corre ejecutoria de la providencia"
+     "descripcion": "Corre ejecutoria de la providencia",
+     "es_audiencia": false,
+     "aud_estado": ""
     }
    ]
   },
@@ -781,7 +835,9 @@
      "materia": "Oficio / requerimiento / respuesta externa",
      "origen": "Oficiosa",
      "termino": "",
-     "descripcion": "Oficio / copia / desglose / constancia — no requiere decisión del juez"
+     "descripcion": "Oficio / copia / desglose / constancia — no requiere decisión del juez",
+     "es_audiencia": false,
+     "aud_estado": ""
     }
    ]
   },
@@ -795,21 +851,27 @@
      "materia": "Recurso (reposición/apelación/queja)",
      "origen": "Memorial",
      "termino": "",
-     "descripcion": "La parte interpone el recurso"
+     "descripcion": "La parte interpone el recurso",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Traslado del recurso",
      "materia": "Recurso (reposición/apelación/queja)",
      "origen": "Vencimiento de término",
      "termino": "Traslado Recurso de Reposición",
-     "descripcion": "Se corre traslado del recurso a la otra parte"
+     "descripcion": "Se corre traslado del recurso a la otra parte",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Decisión del recurso",
      "materia": "Recurso (reposición/apelación/queja)",
      "origen": "Providencia (auto/sentencia)",
      "termino": "",
-     "descripcion": "El despacho resuelve el recurso"
+     "descripcion": "El despacho resuelve el recurso",
+     "es_audiencia": false,
+     "aud_estado": ""
     }
    ]
   },
@@ -823,21 +885,27 @@
      "materia": "Cumplimiento / pago",
      "origen": "Providencia (auto/sentencia)",
      "termino": "",
-     "descripcion": "Se libra la orden (mandamiento de pago, decreto de embargo, etc.)"
+     "descripcion": "Se libra la orden (mandamiento de pago, decreto de embargo, etc.)",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Gestión de cumplimiento",
      "materia": "Cumplimiento / pago",
      "origen": "Oficiosa",
      "termino": "",
-     "descripcion": "Secretaría libra oficios y gestiona el cumplimiento"
+     "descripcion": "Secretaría libra oficios y gestiona el cumplimiento",
+     "es_audiencia": false,
+     "aud_estado": ""
     },
     {
      "nombre": "Acreditación de cumplimiento",
      "materia": "Cumplimiento / pago",
      "origen": "Respuesta externa",
      "termino": "",
-     "descripcion": "Se acredita el cumplimiento (respuesta de entidad, consignación, etc.)"
+     "descripcion": "Se acredita el cumplimiento (respuesta de entidad, consignación, etc.)",
+     "es_audiencia": false,
+     "aud_estado": ""
     }
    ]
   }
@@ -925,6 +993,13 @@
    "nombre": "Constancia secretarial — general",
    "cuerpo": "Se deja constancia que en la fecha, {{descripcion}}."
   }
+ ],
+ "cargos": [
+  "Juez",
+  "Secretario",
+  "Oficial Mayor",
+  "Escribiente",
+  "Citador"
  ],
  "juzgado": {
   "juzgado": "JUZGADO PROMISCUO MUNICIPAL",
