@@ -4,7 +4,7 @@
 ; El instalador queda en dist\ControlProcesos-Setup-<versión>.exe
 
 #define Nombre "Control de Procesos"
-#define Version "1.2"
+#define Version "1.2.0"
 #define Desarrollador "RedSoft Developers"
 #define Exe "ControlProcesos.exe"
 #define Puerto "8765"

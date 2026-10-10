@@ -129,6 +129,8 @@ Los respaldos automáticos quedan en el mismo disco del servidor. Copie periódi
 
 La información y la configuración de cada equipo se conservan.
 
+Instale la misma versión en el servidor y en todos los clientes. Un respaldo exportado con una versión nueva no se puede restaurar en una anterior (por ejemplo, uno de la 1.2 en la 1.1): el programa lo rechaza con el aviso *"El respaldo fue creado con una versión más nueva del programa"*. Por eso conviene guardar el respaldo del paso 2, hecho con la versión anterior, por si hubiera que volver atrás.
+
 ## 7. Cambiar de equipo servidor
 
 1. En el servidor actual: *Menú → Exportar respaldo*.

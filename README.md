@@ -9,15 +9,20 @@ Nació como la migración de `legacy/control_procesos.html`, una página de un s
 ## Qué hace
 
 - **Procesos y actuaciones**, organizadas por cuaderno, con las fechas de su ciclo: memorial, constancia, pase al despacho, providencia, ejecutoria y cumplimiento.
+- **Procesos penales, tutelas y constitucionales**: naturaleza del proceso, solicitudes de control de garantías, delitos, tutela con impugnación, desacato y hábeas corpus, con actuaciones que se crean solas según la naturaleza.
 - **Situación calculada**: a partir de esas fechas, cada actuación queda clasificada (sin constancia, falta pasar al despacho, al despacho pendiente de proveer, corre ejecutoria…) y ubicada en secretaría o despacho.
 - **Términos** en días hábiles judiciales o calendario, con festivos, suspensiones, días cerrados y días habilitados.
 - **Tablero** con los represamientos y los próximos vencimientos.
 - **Gestión por paquetes**: todas las actuaciones pendientes de una misma materia, para trabajarlas en una jornada; se imprime o se exporta a CSV.
+- **Audiencias**: pestaña propia para fijarlas, resolverlas o reprogramarlas, con contador y aviso de las pendientes por confirmar.
+- **Estadística SIERJU**: los datos del formulario trimestral se calculan de los procesos y actuaciones del periodo, con datos especiales para lo que no sale solo; se descarga el Excel oficial con su formato, el Excel completo y una bitácora en CSV.
 - **Rutas procesales**: secuencias de pasos que proponen la siguiente actuación al cerrar la anterior.
 - **Constancias y pases al despacho** desde plantillas, con membrete y antefirma, listos para imprimir o guardar como PDF.
-- **Usuarios, roles y permisos**: 24 permisos asignables por rol, con cinco roles iniciales.
+- **Usuarios, roles y permisos**: 30 permisos asignables por rol, con cinco roles iniciales.
 - **Auditoría**: quién creó, cambió o eliminó cada dato, con el antes y el después.
-- **Respaldos** en JSON: exportar, restaurar, respaldo automático diario y lectura del formato del HTML original.
+- **Respaldos** en JSON: exportar, restaurar, respaldo automático diario y lectura del formato del HTML original (v1 y v2).
+- **Datos de ejemplo** para conocer la aplicación sin cargar procesos reales.
+- **Ayuda**: manual de usuario en PDF y datos de la versión, desde el menú.
 
 ## Arquitectura
 
@@ -48,12 +53,15 @@ app/
   main.py            arranque y opciones de línea de comandos
   desktop/           ventana, asistente Servidor/Cliente, bandeja de Windows
   server/
-    api/             endpoints: sesión, usuarios, procesos, configuración, documentos, respaldo
+    api/             endpoints: sesión, usuarios, procesos, audiencias, estadística, configuración, documentos, respaldo
     core/            permisos, seguridad, rutas de datos
     db/              modelos, semillas y datos por defecto
-    domain/          calendario, términos, situaciones, rutas, plantillas
-    services/        auditoría, respaldos, respaldo automático, documentos
-  web/               interfaz
+    domain/          calendario, términos, situaciones, rutas, plantillas, naturaleza,
+                     automatismos, audiencias; sierju/ arma la estadística
+    services/        auditoría, respaldos, respaldo automático, documentos, ejemplos,
+                     Excel del SIERJU
+  web/               interfaz; ayuda/ tiene el manual en PDF
+docs/                manual de usuario: manual.md (texto fuente) y el .docx con capturas
 migrations/          migraciones de la base de datos
 packaging/           spec de PyInstaller, instalador y script de construcción
 scripts/             utilidades de Node que leen el HTML original
@@ -85,10 +93,12 @@ Las reglas de cálculo se verifican contra el JavaScript del HTML original. Los 
 ```bash
 node scripts/generar_golden.mjs           # valores esperados de situaciones, términos y fechas
 node scripts/generar_respaldo_legacy.mjs  # un respaldo en el formato del HTML original
-node scripts/extraer_semillas.mjs         # catálogos por defecto, membrete y antefirma
+node scripts/extraer_semillas.mjs         # catálogos por defecto, membrete, antefirma y plantilla SIERJU
+node scripts/generar_golden_v2.mjs        # valores esperados de la v2: naturaleza, secretaría, automatismos
+node scripts/generar_golden_sierju.mjs    # valores esperados de la estadística SIERJU y su Excel
 ```
 
-Solo hay que volver a correrlos si cambia `legacy/control_procesos.html`.
+Solo hay que volver a correrlos si cambia el HTML original (`legacy/control_procesos.html` o `legacy/control_procesos_v2.html`).
 
 ### Cambios en la base de datos
 
@@ -112,9 +122,10 @@ El resultado queda en `dist\ControlProcesos-Setup-<versión>.exe`. También lo c
 
 ## Documentación
 
+- [docs/manual.md](docs/manual.md): manual operativo para el personal del juzgado. De él sale el manual en Word (`docs/`) y el PDF que abre *Ayuda → Manual de usuario* (`app/web/ayuda/`).
 - [INSTALACION.md](INSTALACION.md): instalación del servidor y de los clientes, actualización y solución de problemas.
 - [PLANEACION.md](PLANEACION.md): plan del proyecto, decisiones de diseño y estado por fase.
 
 ## Estado
 
-El desarrollo está completo. Las pruebas pasan en Windows y el instalador ya se construye: `dist\ControlProcesos-Setup-1.1.exe`. Falta verificar en el despacho la impresión y PDF, el guardado de archivos, el icono de bandeja y la conexión entre dos equipos.
+Versión 1.2.0: se suman los procesos penales y constitucionales, las audiencias y la estadística SIERJU de la v2 del HTML. Las pruebas pasan en Windows y el instalador se construye: `dist\ControlProcesos-Setup-1.2.0.exe`. Falta verificar en el despacho la impresión y PDF, el guardado de archivos (incluidas las descargas del SIERJU), el icono de bandeja y la conexión entre dos equipos.
