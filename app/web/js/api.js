@@ -36,8 +36,20 @@ async function pedir(metodo, url, cuerpo, silencioso) {
   return (r.headers.get('content-type') || '').includes('json') ? r.json() : r.text();
 }
 
+/* Para las descargas: devuelve el archivo tal cual, sin intentar leerlo como JSON. */
+async function bajar(url) {
+  let r;
+  try { r = await fetch(url, { credentials: 'same-origin' }); } catch (e) { throw new ApiError(0, 'No hay conexión con el servidor'); }
+  if (!r.ok) {
+    if (r.status === 401) alExpirar();
+    throw new ApiError(r.status, await mensajeDeError(r));
+  }
+  return { blob: await r.blob(), aviso: r.headers.get('x-columnas-sin-mapa') || '' };
+}
+
 export const api = {
   get: (url, params, silencioso) => pedir('GET', url + qs(params), undefined, silencioso),
+  archivo: (url, params) => bajar(url + qs(params)),
   post: (url, cuerpo, silencioso) => pedir('POST', url, cuerpo === undefined ? {} : cuerpo, silencioso),
   put: (url, cuerpo) => pedir('PUT', url, cuerpo),
   del: url => pedir('DELETE', url),

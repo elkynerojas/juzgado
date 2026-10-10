@@ -7,10 +7,11 @@ import { cargarResp, cfgResp, accionesResp } from './respaldo.js';
 const TABS = [
   ['cat', 'Catálogos', 'config.catalogos'], ['term', 'Términos', 'config.terminos'], ['rutas', 'Rutas procesales', 'config.rutas'],
   ['cal', 'Calendario judicial', 'config.calendario'], ['plt', 'Plantillas y firma', 'config.plantillas'], ['jz', 'Datos del juzgado', 'config.juzgado'],
-  ['resp', 'Respaldos', 'respaldo.exportar'], ['look', 'Apariencia', null], ['usr', 'Usuarios', 'usuarios.gestionar'], ['rol', 'Roles y permisos', 'roles.gestionar'], ['aud', 'Auditoría', 'auditoria.ver'],
+  ['resp', 'Respaldos', 'respaldo.exportar'], ['look', 'Apariencia', null], ['pers', 'Personal y cargos', 'config.personal'],
+  ['usr', 'Usuarios', 'usuarios.gestionar'], ['rol', 'Roles y permisos', 'roles.gestionar'], ['aud', 'Auditoría', 'auditoria.ver'],
 ];
 const ORIGENES = ['Memorial', 'Vencimiento de término', 'Providencia (auto/sentencia)', 'Respuesta externa', 'Oficiosa'];
-const CAMPOS_PLANTILLA = 'Campos: {{radicado}} {{radicado_full}} {{proceso}} {{demandante}} {{demandado}} {{cuaderno}} {{descripcion}} {{materia}} {{termino}} {{fecha_inicio}} {{vencimiento}} {{motivo_pase}} {{fecha}} {{fecha_letras}} {{ciudad}}';
+const CAMPOS_PLANTILLA = 'Campos: {{radicado}} {{radicado_full}} {{proceso}} {{naturaleza}} {{cui}} {{tipo_sierju}} {{demandante}} {{demandado}} {{cuaderno}} {{descripcion}} {{materia}} {{termino}} {{fecha_inicio}} {{vencimiento}} {{motivo_pase}} {{fecha}} {{fecha_letras}} {{ciudad}}';
 
 const el = () => $('#view-config');
 // datos de las pestañas de administración (no hacen parte de /api/config)
@@ -115,6 +116,9 @@ function editarPaso(rutaId, p) {
       { k: 'materia', label: 'Materia', tipo: 'select', valor: p ? p.materia : '', opciones: [['', '— sin materia —']].concat(cat('materias')) },
       { k: 'termino', label: 'Término aplicable', tipo: 'select', valor: p ? p.termino : '', opciones: [['', '— sin término —']].concat(S.cfg.terminos.map(t => t.nombre)) },
       { k: 'descripcion', label: 'Descripción por defecto', valor: p && p.descripcion },
+      // sin estos dos el paso perdía la marca de audiencia al editarlo y desarmaba la ruta de garantías
+      { k: 'es_audiencia', label: 'Este paso fija o registra una audiencia', tipo: 'checkbox', valor: p ? p.es_audiencia : false },
+      { k: 'aud_estado', label: 'Estado inicial de la audiencia', tipo: 'select', valor: p ? p.aud_estado : '', opciones: [['', '— ninguno —']].concat(S.cfg.audiencias.estados) },
     ],
     guardar: async v => {
       if (p) await api.put('/api/config/pasos/' + p.id, v); else await api.post('/api/config/rutas/' + rutaId + '/pasos', v);
@@ -190,10 +194,46 @@ function cfgJz() {
 function cfgLook() {
   const t = S.me.preferencias || {};
   return '<div class="card"><div class="block"><div class="bt">Apariencia (solo para su usuario)</div>'
+    + '<div class="field"><label>Paletas rápidas (un clic)</label><div class="paletas">'
+    + (S.cfg.paletas || []).map(([c, n]) => '<span class="paleta' + (t.color === c ? ' active' : '') + '" data-acc="paleta" data-c="' + esc(c) + '">'
+      + '<i style="background:' + esc(c) + '"></i>' + esc(n) + '</span>').join('') + '</div></div>'
     + '<div class="frow"><div class="field"><label>Color principal</label><input type="color" id="tmColor" value="' + (t.color || '#1f3864') + '" style="height:42px;padding:2px"></div>'
     + '<div class="field"><label>Tema</label><select id="tmModo">' + opciones([['', 'Automático (según el equipo)'], ['light', 'Claro'], ['dark', 'Oscuro']], t.modo || '') + '</select></div></div>'
     + '<div class="field"><label>Tamaño de letra</label><select id="tmFont">' + opciones([['', 'Normal'], ['15px', 'Grande'], ['16px', 'Muy grande']], t.font || '') + '</select></div>'
     + '<button class="btn sm" data-acc="temaReset">Restablecer apariencia</button></div></div>';
+}
+
+/* ===== personal y cargos ===== */
+function cfgPers() {
+  let h = '<div class="card"><div class="tablewrap"><table><thead><tr><th>Nombre</th><th>Cargo</th><th>Estado</th><th></th></tr></thead><tbody>';
+  const gente = S.cfg.personal || [];
+  if (!gente.length) h += '<tr class="fija"><td colspan="4" class="muted" style="text-align:center;padding:22px">Sin personal registrado.</td></tr>';
+  gente.forEach(p => {
+    h += '<tr class="fija"><td>' + esc(p.nombre) + '</td><td class="tiny">' + esc(p.cargo || '—') + '</td>'
+      + '<td>' + (p.activo ? '<span class="badge b-green">Activo</span>' : '<span class="badge b-gray">Inactivo</span>') + '</td>'
+      + '<td><button class="btn sm" data-acc="persEditar" data-id="' + p.id + '">Editar</button></td></tr>';
+  });
+  h += '</tbody></table></div><button class="btn sm" data-acc="persEditar">+ Agregar persona</button>'
+    + '<div class="hint" style="margin-top:8px">El personal del despacho, para asignar responsables a las actuaciones y audiencias. '
+    + 'Es un catálogo aparte de los usuarios del sistema: aquí va quien trabaja en el juzgado, aunque no entre a la aplicación.</div></div>';
+  return h;
+}
+
+function editarPersonal(id) {
+  const p = (S.cfg.personal || []).find(x => x.id === id) || null;
+  formModal({
+    titulo: p ? 'Editar persona' : 'Nueva persona',
+    campos: [
+      { k: 'nombre', label: 'Nombre completo', valor: p && p.nombre, req: true },
+      { k: 'cargo', label: 'Cargo', tipo: 'select', valor: p ? p.cargo : '', opciones: [['', '— sin cargo —']].concat(cat('cargos')) },
+      { k: 'activo', label: 'Trabaja actualmente en el despacho', tipo: 'checkbox', valor: p ? p.activo : true },
+    ],
+    guardar: async v => {
+      if (p) await api.put('/api/config/personal/' + p.id, v); else await api.post('/api/config/personal', v);
+      await recargar('Personal guardado');
+    },
+    eliminar: p && (() => borrar('/api/config/personal/' + p.id, '¿Eliminar a esta persona del catálogo?')),
+  });
 }
 
 /* ===== usuarios y roles ===== */
@@ -276,7 +316,7 @@ function cfgAud() {
   return h + '</tbody></table></div></div>';
 }
 
-const VISTAS = { cat: cfgCat, term: cfgTerm, rutas: cfgRutas, cal: cfgCal, plt: cfgPlt, jz: cfgJz, look: cfgLook, usr: cfgUsr, rol: cfgRol, aud: cfgAud, resp: cfgResp };
+const VISTAS = { cat: cfgCat, term: cfgTerm, rutas: cfgRutas, cal: cfgCal, plt: cfgPlt, jz: cfgJz, look: cfgLook, pers: cfgPers, usr: cfgUsr, rol: cfgRol, aud: cfgAud, resp: cfgResp };
 
 const porId = (lista, d) => lista.find(x => String(x.id) === d.dataset.id) || null;
 const fechaDe = id => { const v = $('#' + id).value; if (!v) toast('Elija una fecha'); return v; };
@@ -323,6 +363,8 @@ const ACCIONES = {
   },
   memSubir: async () => { await api.put('/api/config/membrete', await elegirImagen()); await recargar('Membrete actualizado'); },
   temaReset: async () => { await guardarTema({ color: '', modo: '', font: '' }); renderConfig(); },
+  paleta: async c => { await guardarTema({ color: c.dataset.c }); renderConfig(); },
+  persEditar: c => editarPersonal(c.dataset.id || null),
 
   usrEditar: d => editarUsuario(porId(usuarios, d)),
   rolEditar: d => editarRol(porId(roles, d)),

@@ -6,7 +6,8 @@ import { cargar, V2 } from './legacy.mjs';
 
 const out = cargar(`
 const __form={};
-function __el(v){return {value:v===undefined?'':v,checked:false,style:{},innerHTML:'',textContent:'',options:[]};}
+function __el(v){return {value:v===undefined?'':v,checked:false,style:{},innerHTML:'',textContent:'',options:[],
+  classList:{add(){},remove(){},toggle(){}}};}
 document.getElementById=function(id){return __form[id]||null;};
 document.querySelector=function(s){var k=s.charAt(0)==='#'?s.slice(1):s;return __form[k]||__el('');};
 toast=function(){};
@@ -76,6 +77,7 @@ var __base={procesoId:DB.procesos[0].id,cuaderno:'Principal',materia:'Otro',tipo
  ['con recurso',addISO(-1),0,'Apelación'],['ejecutoria vence hoy',addISO(-3),1,'']].forEach(function(x,i){
   DB.actuaciones.push(Object.assign({},__base,{id:'ej'+i,descripcion:x[0],notifFecha:x[1],ejecDias:x[2]||undefined,recursoTipo:x[3]}));});
 const statsActs=DB.actuaciones.slice();
+const statsProcesos=DB.procesos.slice();
 const stats=globalStats();
 
 // ---------- automatismos al crear y editar procesos ----------
@@ -121,9 +123,52 @@ var cancelada={id:'c1',procesoId:'p1',cuaderno:'Principal',materia:'Audiencia / 
 __caso('garantías ya cancelada: actualiza sin duplicar',G(salidas('2026-10-18','','Retiro de la solicitud por la Fiscalía')),{accion:'editar'},[gestion0,aud,cancelada]);
 __caso('garantías nueva con audiencia ya cancelable',G(salidas('2026-10-18','','')),{accion:'nuevo'},[aud]);
 
+// ---------- normalización de saveProc (fechas automáticas, cuadernos, clase penal) ----------
+// Se corre el saveProc real con el formulario falso y se recoge el proceso tal como queda guardado.
+const normalizacion=[];
+save=function(){};draftClear=function(){};setView=function(){};openDetalle=function(){};curView='procesos';
+function __norm(nombre,campos,sols,delitos2){
+  var base={p_rad:'2026-09-001',p_nat:'Civil',p_sierju:'',p_penproc:'Garantías',p_clase:'Ejecutivo',p_dte:'Banco',p_dda:'Pérez',
+    p_frad:'2026-09-10',p_sit:'Activo',p_macro:'',p_fterm:'',p_farch:'',p_via:'Oral',p_salida:'',p_noticia:'',p_penalsol:'',
+    p_entrada:'',p_tpfecha:'',p_impugna:'',p_impugfecha:'',p_dec2da:'',p_desTutela:'',p_desReq:'',p_desApertura:'',
+    p_desConsulta:'',p_medidatut:'',p_cuainicial:'Principal',p_crearmed:'No'};
+  Object.keys(base).forEach(function(k){__form[k]=__el(campos[k]!==undefined?campos[k]:base[k]);});
+  __form.p_tp=Object.assign(__el(''),{checked:!!campos.p_tp});
+  __form.p_crearact=Object.assign(__el(''),{checked:false});
+  // effNat lee la ley del delito elegido
+  __form.p_sierju.selectedOptions=[{dataset:{ley:campos.__ley||'906'}}];
+  tempPenalSolicitudes=(sols||[]).map(function(x){return Object.assign({},x);});
+  tempDelitos=(delitos2||[]).slice();
+  DB.procesos=[];DB.actuaciones=[];editProc=null;
+  saveProc();
+  var p=DB.procesos[0];
+  // uid() es aleatorio: se fija para que el golden sea reproducible
+  normalizacion.push({nombre:nombre,entrada:{campos:campos,solicitudes:sols||[],delitos:delitos2||[]},
+    proceso:p?Object.assign({},p,{id:'pn'}):null});
+}
+__fijar('2026-09-30');
+__norm('civil activo',{});
+__norm('terminado sin fecha',{p_sit:'Terminado'});
+__norm('terminado con fecha escrita',{p_sit:'Terminado',p_fterm:'2026-08-01'});
+__norm('archivado sin fecha',{p_sit:'Archivado'});
+__norm('trámite posterior sin fecha',{p_tp:true});
+__norm('trámite posterior con terminación',{p_sit:'Terminado',p_tp:true});
+__norm('trámite posterior con fecha propia',{p_tp:true,p_tpfecha:'2026-09-20'});
+__norm('sin trámite posterior ignora la fecha',{p_tpfecha:'2026-09-20'});
+__norm('cuaderno inicial propio',{p_cuainicial:'Incidente de desacato'});
+__norm('medidas cautelares',{p_crearmed:'Sí'});
+__norm('medidas cautelares en su cuaderno',{p_cuainicial:'Medidas cautelares',p_crearmed:'Sí'});
+__norm('civil con forma de salida',{p_sit:'Terminado',p_salida:'Sentencia'});
+__norm('penal conocimiento: la clase es el delito',{p_nat:'Penal',p_penproc:'Conocimiento',p_sierju:'ARTÍCULO 239. HURTO',p_clase:'se descarta'},[],['ARTÍCULO 103. HOMICIDIO','']);
+__norm('garantías vacía la forma de salida',{p_nat:'Penal',p_penproc:'Garantías',p_sierju:'ARTÍCULO 239. HURTO',p_salida:'Sentencia'},[{id:'s',tipo:'LEGALIZACIÓN DE CAPTURA',fecha:'',entrada:'Nueva solicitud',salida:'',fechaSalida:'',horaSalida:'',detalleSalida:''}]);
+__norm('garantías toma la fecha de radicación',{p_nat:'Penal',p_penproc:'Garantías',p_sierju:'ARTÍCULO 239. HURTO',p_frad:'2026-09-11'},[{id:'s',tipo:'IMPUTACIÓN',fecha:'',entrada:'Nueva solicitud',salida:'',fechaSalida:'',horaSalida:'',detalleSalida:''}]);
+__norm('civil descarta los delitos adicionales',{},[],['ARTÍCULO 103. HOMICIDIO']);
+__norm('tutela',{p_nat:'Tutela',p_sierju:'Salud',p_medidatut:'Sí',p_impugna:'Sí',p_impugfecha:'2026-09-20'});
+
 globalThis.__out=JSON.stringify({festivos:Array.from(FESTIVOS).sort(),terminos:DB.config.terminos,tiposSolicitud:DB.config.tiposSolicitud,
   naturalezas:naturalezas,delitos:delitos,sug:sug,gestion:gestion,ejecutoria:ejecutoria,
-  stats:{hoy:'2026-09-30',calendario:__CALS[1],procesos:DB.procesos,acts:statsActs,prox:stats.prox},automatismos:automatismos});
+  stats:{hoy:'2026-09-30',calendario:__CALS[1],procesos:statsProcesos,acts:statsActs,prox:stats.prox},automatismos:automatismos,
+  normalizacion:normalizacion});
 `, V2);
 
 fs.writeFileSync(new URL('../tests/golden/v2_dominio.json', import.meta.url), JSON.stringify(out) + '\n');

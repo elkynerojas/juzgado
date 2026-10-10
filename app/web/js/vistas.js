@@ -2,6 +2,7 @@ import { api } from './api.js';
 import { S, nav, puede, cat } from './estado.js';
 import { $, esc, fmt, hoyISO, fechaLarga, toast, badge, badgeTermino, delegar, opciones, guardarArchivo, imprimir } from './util.js';
 import { openProc } from './formularios.js';
+import { pintarContador } from './audiencias.js';
 
 const buscado = () => ($('#search').value || '').trim();
 
@@ -12,6 +13,8 @@ function kpi(cls, f, n, l) {
 
 export async function renderTablero() {
   const s = await api.get('/api/tablero');
+  // el contador de la pestaña Audiencias se refresca con el tablero
+  if (typeof s.audiencias_pendientes === 'number') pintarContador(s.audiencias_pendientes);
   let h;
   if (!s.procesos) {
     h = '<div class="empty">Aún no hay procesos.<br><br>'
@@ -54,10 +57,26 @@ export async function cargarEjemplos() {
 /* ===== PROCESOS ===== */
 const CHIPS = [['', 'Todos'], ['ad', 'Al despacho'], ['rs', 'Represa secretaría'], ['sc', 'Sin constancia'], ['fp', 'Falta pasar'], ['esp', 'Esperando término'], ['susp', 'Suspendidos']];
 
+/* Los cuatro filtros nuevos de la v2. Las opciones las trae la respuesta: salen de lo que hay en la base. */
+const FILTROS_SEL = [
+  ['pAnio', 'anios', 'Todos los años'],
+  ['pSit', 'situaciones', 'Toda situación'],
+  ['pUbic', 'ubicaciones', 'Toda ubicación'],
+  ['pArea', 'areas', 'Toda área'],
+];
+
 export async function renderProcesos() {
-  const filas = await api.get('/api/procesos', { q: buscado(), filtro: S.filtro });
+  const r = await api.get('/api/procesos', {
+    q: buscado(), filtro: S.filtro, anio: S.pAnio, situacion: S.pSit, ubicacion: S.pUbic, area: S.pArea,
+  });
+  const filas = r.filas;
   let h = '<div class="chips">';
   CHIPS.forEach(([f, l]) => { h += '<div class="chip ' + ((S.filtro || '') === f ? 'active' : '') + '" data-acc="chip" data-c="' + f + '">' + l + '</div>'; });
+  h += '</div><div class="filterbar">';
+  FILTROS_SEL.forEach(([clave, lista, vacio]) => {
+    h += '<select class="fltsel" id="flt_' + clave + '">' + opciones(r[lista], S[clave] || '', vacio) + '</select>';
+  });
+  if (FILTROS_SEL.some(([c]) => S[c])) h += '<button class="btn sm" data-acc="fltClr">✕ Limpiar filtros</button>';
   h += '</div><div class="tablewrap"><table><thead><tr><th>Radicado</th><th>Partes</th><th>Situación</th><th>Ubicación</th><th>Represam.</th><th>Inactividad</th><th>Próx. venc.</th><th>Sin mov.</th></tr></thead><tbody>';
   if (!filas.length) h += '<tr class="fija"><td colspan="8" class="muted" style="text-align:center;padding:26px">Sin resultados.</td></tr>';
   filas.forEach(p => {
@@ -79,7 +98,11 @@ export async function renderProcesos() {
   el.innerHTML = h;
   delegar(el, {
     chip: c => { S.filtro = c.dataset.c || null; renderProcesos(); },
+    fltClr: () => { FILTROS_SEL.forEach(([c]) => { S[c] = null; }); renderProcesos(); },
     abrir: r => nav.detalle(r.dataset.p),
+  });
+  FILTROS_SEL.forEach(([clave]) => {
+    $('#flt_' + clave).onchange = e => { S[clave] = e.target.value || null; renderProcesos(); };
   });
 }
 
@@ -87,7 +110,9 @@ export async function renderProcesos() {
 const ESTADOS = [[1, 'Esperando término'], [3, 'Sin constancia'], [4, 'Falta pasar'], [5, 'Al despacho'], [6, 'Corre ejecutoria'], [7, 'Pendiente cumplir'], [8, 'Trámite secretaría']];
 let filasPaquete = [];
 
-function filtrosPaquete() { return { materia: S.gMat, situacion: S.gSit, tipo: S.gTipo, q: buscado() }; }
+function filtrosPaquete() {
+  return { materia: S.gMat, situacion: S.gSit, tipo: S.gTipo, q: buscado(), desde: S.gDesde, hasta: S.gHasta };
+}
 function tituloPaquete() { const q = buscado(); return S.gTipo || S.gMat || (q ? '“' + q + '”' : 'Todos los paquetes'); }
 
 export async function renderGestion() {
@@ -105,6 +130,10 @@ export async function renderGestion() {
   h += '</div><div class="filterbar"><div class="lbl">Tipo de solicitud (catálogo detallado)</div><select id="gTipoSel" style="max-width:360px">'
     + opciones(cat('tipos_solicitud'), S.gTipo || '', 'Todos los tipos') + '</select>'
     + (S.gTipo ? '<button class="btn sm" data-acc="tipoClr">✕ quitar</button>' : '') + '</div>';
+  h += '<div class="filterbar"><div class="lbl">Rango de fechas (la que activa la actuación)</div>'
+    + '<input type="date" id="gDesde" class="fltsel" value="' + esc(S.gDesde || '') + '">'
+    + '<input type="date" id="gHasta" class="fltsel" value="' + esc(S.gHasta || '') + '">'
+    + (S.gDesde || S.gHasta ? '<button class="btn sm" data-acc="fechaClr">✕ quitar</button>' : '') + '</div>';
   h += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 2px 8px"><div class="tiny muted" style="flex:1"><b>' + r.filas.length + '</b> expediente(s) en <b>' + esc(tituloPaquete()) + '</b> — clic en una fila para abrir el proceso.</div>';
   if (r.filas.length && puede('paquetes.exportar')) h += '<button class="btn sm" data-acc="imprimir">🖨️ Imprimir lista</button><button class="btn sm" data-acc="csv">⬇️ Exportar</button>';
   h += '</div><div class="tablewrap"><table><thead><tr><th>Radicado</th><th>Cuaderno</th><th>Materia</th><th>Descripción</th><th>Situación</th><th>Término / vence</th><th>Resultado</th></tr></thead><tbody>';
@@ -123,11 +152,14 @@ export async function renderGestion() {
     mat: c => { S.gMat = c.dataset.m || null; renderGestion(); },
     sit: c => { S.gSit = c.dataset.s === '' ? null : Number(c.dataset.s); renderGestion(); },
     tipoClr: () => { S.gTipo = null; renderGestion(); },
+    fechaClr: () => { S.gDesde = S.gHasta = null; renderGestion(); },
     abrir: r => nav.detalle(r.dataset.p),
     imprimir: imprimirLista,
     csv: exportarCSV,
   });
   $('#gTipoSel').onchange = e => { S.gTipo = e.target.value || null; renderGestion(); };
+  $('#gDesde').onchange = e => { S.gDesde = e.target.value || null; renderGestion(); };
+  $('#gHasta').onchange = e => { S.gHasta = e.target.value || null; renderGestion(); };
 }
 
 function imprimirLista() {

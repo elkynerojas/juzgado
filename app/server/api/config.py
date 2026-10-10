@@ -12,6 +12,7 @@ from app.server.api.esquemas import (
     FirmanteIn,
     JuzgadoIn,
     PasoIn,
+    PersonalIn,
     PlantillaIn,
     RutaIn,
     SuspensionIn,
@@ -26,6 +27,7 @@ from app.server.db.models import (
     Config,
     Festivo,
     Firmante,
+    Personal,
     Plantilla,
     Ruta,
     RutaPaso,
@@ -33,8 +35,12 @@ from app.server.db.models import (
     TipoRuta,
     Usuario,
 )
-from app.server.db.seeds import CATALOGOS, cargar_catalogos
+from app.server.db.seeds import CATALOGOS, cargar_catalogos, cargar_sierju
+from app.server.domain import audiencias as Aud
+from app.server.domain import automatismos as Auto
 from app.server.domain import estados as E
+from app.server.domain import naturaleza as N
+from app.server.domain import secretaria as Sec
 from app.server.domain.calendario import es_habil
 from app.server.services import auditoria
 from app.server.services.contexto import construir_calendario, mapa_rutas
@@ -45,6 +51,16 @@ r = APIRouter(prefix="/api/config", tags=["configuración"])
 CLAVES_JUZGADO = ("juzgado", "ciudad", "prefijo")
 MEMBRETE = "membrete"
 MAX_IMAGEN = 2 * 1024 * 1024
+
+# atajos de color de la v2: un clic deja el tema institucional listo
+PALETAS = (
+    ("#1f3864", "Azul institucional"),
+    ("#0f6e4f", "Verde"),
+    ("#7a1f2b", "Vinotinto"),
+    ("#334155", "Gris pizarra"),
+    ("#0e7490", "Teal"),
+    ("#5b21b6", "Púrpura"),
+)
 
 
 def _guardar(s: Session, u: Usuario, entidad: str, obj, accion: str, antes=None) -> dict:
@@ -125,7 +141,94 @@ def leer(s: Session = Depends(get_db), _=Depends(usuario_actual)):
         "sugerencias_termino": semilla["sugerencias"],
         "motivos_pase": semilla["motivosPase"],
         "situaciones": [{"codigo": c, "situacion": t, "badge": E.SIT_BADGE[c]} for c, t in enumerate(E.SIT)],
+        # --- v2 ---
+        # las listas que dependen de la naturaleza no van aquí (son miles de delitos): se piden a /naturaleza
+        "naturalezas": list(N.NATURALEZAS),
+        "areas": list(N.AREAS),
+        "leyes_penales": list(N.LEYES_PENALES),
+        "procedimientos_penales": [N.GARANTIAS, N.CONOCIMIENTO],
+        "personal": [a_dict(x) for x in s.scalars(select(Personal).order_by(Personal.nombre))],
+        "modos_cierre": list(Sec.MODOS_CIERRE),
+        "solicitud_penal": {
+            "entradas": ["Nueva solicitud", "Reingreso"],
+            "detalles_no_efectiva": list(Auto.DETALLES_SALIDA_NO_EFECTIVA),
+        },
+        "actuacion": {
+            "tipos_providencia": list(Sec.TIPOS_PROVIDENCIA),
+            "tramites_posteriores": list(Sec.TRAMITES_POSTERIORES),
+            "recursos": list(Sec.RECURSOS),
+            "objetos_recurso": list(Sec.OBJETOS_RECURSO),
+            "resultados_superior": list(Sec.RESULTADOS_SUPERIOR),
+            "notif_formas": list(Sec.NOTIF_FORMAS),
+            "si_no": list(Sec.SI_NO),
+            "ejec_dias": Sec.EJEC_DIAS,
+        },
+        "audiencias": {
+            "estados": list(Aud.ESTADOS),
+            "materia": Aud.MATERIA,
+            "causas": {k: list(v) for k, v in cargar_sierju()["audiencias"]["columnas_causa"].items()},
+        },
+        "paletas": [list(x) for x in PALETAS],
     }
+
+
+@r.get("/naturaleza")
+def listas_de_naturaleza(naturaleza: str = "", clase: str = "", s: Session = Depends(get_db), _=Depends(usuario_actual)):
+    """Todo lo que cambia al elegir la naturaleza. El frontend lo pide y lo guarda en caché."""
+    catalogo = [c.valor for c in s.scalars(select(Catalogo).where(Catalogo.tipo == "tipos_solicitud").order_by(Catalogo.orden, Catalogo.id))]
+    return {
+        "naturaleza": naturaleza,
+        "area": N.area_de(naturaleza),
+        "sugerido": N.sug_sierju(clase, naturaleza),
+        "tipo_sierju": N.lista_sierju(naturaleza),
+        "salidas": N.lista_salidas(naturaleza),
+        "entradas": N.entradas_sierju(naturaleza),
+        "penal_solicitudes": N.penal_solicitudes(naturaleza),
+        "tipos_gestion": N.tipos_gestion(naturaleza, catalogo),
+        "salidas_act": N.salidas_act(naturaleza),
+        "aud_tipos": Aud.tipos(naturaleza),
+        "es_penal": N.es_penal(naturaleza),
+        "es_garantias": N.es_garantias(naturaleza),
+        "es_constitucional": N.es_constitucional(naturaleza),
+        "es_desacato": N.es_desacato(naturaleza),
+    }
+
+
+@r.get("/delitos")
+def delitos(procedimiento: str = N.GARANTIAS, _=Depends(usuario_actual)):
+    """Delitos de las dos leyes penales para el procedimiento, como (delito, ley)."""
+    return [{"delito": d, "ley": ley} for d, ley in N.delitos_unificados(procedimiento)]
+
+
+# ---------- personal ----------
+
+
+@r.get("/personal")
+def listar_personal(s: Session = Depends(get_db), _=Depends(usuario_actual)):
+    return [a_dict(x) for x in s.scalars(select(Personal).order_by(Personal.nombre))]
+
+
+@r.post("/personal", status_code=201)
+def crear_personal(datos: PersonalIn, s: Session = Depends(get_db), u: Usuario = Depends(requiere("config.personal"))):
+    x = Personal(**datos.model_dump())
+    s.add(x)
+    return _guardar(s, u, "personal", x, auditoria.CREAR)
+
+
+@r.put("/personal/{pid}")
+def editar_personal(
+    pid: str, datos: PersonalIn, s: Session = Depends(get_db), u: Usuario = Depends(requiere("config.personal"))
+):
+    x = obtener(s, Personal, pid, "Persona")
+    antes = a_dict(x)
+    for k, v in datos.model_dump().items():
+        setattr(x, k, v)
+    return _guardar(s, u, "personal", x, auditoria.EDITAR, antes)
+
+
+@r.delete("/personal/{pid}", status_code=204)
+def eliminar_personal(pid: str, s: Session = Depends(get_db), u: Usuario = Depends(requiere("config.personal"))):
+    _eliminar(s, u, "personal", obtener(s, Personal, pid, "Persona"))
 
 
 # ---------- catálogos ----------

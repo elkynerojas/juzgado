@@ -1,6 +1,6 @@
 [project]
 name = "control-procesos"
-version = "1.1"
+version = "1.2"
 description = "Control de procesos judiciales: app de escritorio multiusuario en red local"
 requires-python = ">=3.12"
 dependencies = [

@@ -65,6 +65,21 @@ export async function guardarArchivo(nombre, contenido, mime, descripcion) {
   const a = document.createElement('a'); a.href = u; a.download = nombre; a.click(); URL.revokeObjectURL(u);
 }
 
+/* El Excel del SIERJU no es texto: dentro de la ventana nativa se manda en base64 al diálogo de Windows. */
+export async function guardarArchivoBinario(nombre, blob, descripcion) {
+  if (nativo()) {
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    let bin = '';
+    const TROZO = 8192;  // btoa no acepta de un golpe un archivo de varios MB
+    for (let i = 0; i < bytes.length; i += TROZO) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + TROZO));
+    const ruta = await window.pywebview.api.guardar_binario(nombre, btoa(bin), descripcion);
+    if (ruta) toast('Guardado en ' + ruta);
+    return;
+  }
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = u; a.download = nombre; a.click(); URL.revokeObjectURL(u);
+}
+
 export function imprimir(html) {
   const viejo = document.getElementById('printFrame'); if (viejo) viejo.remove();
   const f = document.createElement('iframe'); f.id = 'printFrame';

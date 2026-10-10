@@ -4,13 +4,15 @@ import { $, $$, toast, abrir, cerrar, debounce, hayModalAbierto } from './util.j
 import { renderTablero, renderProcesos, renderGestion, cargarEjemplos } from './vistas.js';
 import { openDetalle } from './detalle.js';
 import { renderConfig } from './config.js';
+import { renderAudiencias, iniciarAudiencias } from './audiencias.js';
+import { renderEstadistica, iniciarEstadistica } from './estadistica.js';
 import { openProc, iniciarFormularios } from './formularios.js';
 import { iniciarDocs } from './docs.js';
 import { mostrarLogin, cambiarPassword, iniciarAuth } from './auth.js';
 import { exportarRespaldo, restaurarDesdeArchivo } from './respaldo.js';
 
-const VISTAS = ['tablero', 'procesos', 'gestion', 'config', 'detalle'];
-const RENDER = { tablero: renderTablero, procesos: renderProcesos, gestion: renderGestion, config: renderConfig };
+const VISTAS = ['tablero', 'procesos', 'gestion', 'audiencias', 'estadistica', 'config', 'detalle'];
+const RENDER = { tablero: renderTablero, procesos: renderProcesos, gestion: renderGestion, audiencias: renderAudiencias, estadistica: renderEstadistica, config: renderConfig };
 const REFRESCO_MS = 30000;
 const MANUAL = '/ayuda/Manual_de_usuario_Control_de_Procesos.pdf';
 
@@ -21,7 +23,8 @@ function mostrar(v) {
 }
 
 nav.mostrar = mostrar;
-nav.ir = v => { if (v === 'gestion' && !puede('paquetes.ver')) v = 'procesos'; mostrar(v); return RENDER[v](); };
+const VEDADA = { gestion: 'paquetes.ver', audiencias: 'audiencias.ver', estadistica: 'estadistica.ver' };
+nav.ir = v => { if (VEDADA[v] && !puede(VEDADA[v])) v = 'procesos'; mostrar(v); return RENDER[v](); };
 nav.detalle = pid => { if (S.vista !== 'detalle') S.volverA = S.vista; return openDetalle(pid); };
 nav.refrescar = () => (S.vista === 'detalle' ? openDetalle(S.proc, false) : RENDER[S.vista]());
 
@@ -36,7 +39,12 @@ async function arrancar() {
   aplicarTema(); aplicarPermisos();
   $('#brandJz').textContent = S.cfg.juzgado.juzgado;
   // otro usuario pudo haber dejado filtros puestos en esta misma ventana
-  Object.assign(S, { filtro: null, gMat: null, gSit: null, gTipo: null, cfgTab: null, proc: null });
+  Object.assign(S, {
+    filtro: null, gMat: null, gSit: null, gTipo: null, gDesde: null, gHasta: null,
+    pAnio: null, pSit: null, pUbic: null, pArea: null,
+    aDesde: null, aHasta: null, aEstado: null, aArea: null,
+    eDesde: null, eHasta: null, cfgTab: null, proc: null,
+  });
   $('#search').value = '';
   await nav.ir('tablero');
 }
@@ -124,7 +132,7 @@ function enlazar() {
 }
 
 async function inicio() {
-  iniciarAuth(); iniciarFormularios(); iniciarDocs(); enlazar();
+  iniciarAuth(); iniciarFormularios(); iniciarAudiencias(); iniciarEstadistica(); iniciarDocs(); enlazar();
   onSesionVencida(pedirIngreso);
   try { await api.get('/api/me', null, true); } catch (e) { pedirIngreso(); return; }
   await arrancar();

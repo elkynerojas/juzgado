@@ -83,6 +83,46 @@ def _de(p, acts: Iterable) -> list:
     return [a for a in acts if a.proceso_id == p.id]
 
 
+CUADERNO_MEDIDAS = "Medidas cautelares"
+SITUACION_TERMINADO = "Terminado"
+SITUACION_ARCHIVADO = "Archivado"
+
+
+def normalizar_proceso(p, hoy: date, crear_medidas: bool = False) -> None:
+    """Lo que la v2 completaba sola en saveProc antes de guardar. Modifica el proceso en sitio."""
+    if p.situacion == SITUACION_TERMINADO and not p.fecha_terminacion:
+        p.fecha_terminacion = hoy
+    if p.situacion == SITUACION_ARCHIVADO and not p.fecha_archivo:
+        p.fecha_archivo = hoy
+
+    p.fecha_tramite_posterior = (p.fecha_tramite_posterior or p.fecha_terminacion or hoy) if p.tramite_posterior else None
+
+    p.cuaderno_inicial = p.cuaderno_inicial or "Principal"
+    cuadernos = list(p.cuadernos or [])
+    for c in (p.cuaderno_inicial, CUADERNO_MEDIDAS if crear_medidas else None):
+        if c and c not in cuadernos:
+            cuadernos.append(c)
+    p.cuadernos = cuadernos
+
+    if N.es_penal(p.naturaleza):
+        # en penal la clase del proceso es el delito, que es también el tipo SIERJU
+        p.clase = p.tipo_sierju
+        p.delitos_adicionales = [d for d in (p.delitos_adicionales or []) if d]
+    else:
+        p.delitos_adicionales = []
+
+    if N.es_garantias(p.naturaleza):
+        # la salida se lleva por solicitud, no por proceso (en la v2 el campo quedaba oculto y se guardaba igual)
+        p.forma_salida = ""
+        for s in p.solicitudes_penales:
+            if not s.fecha:
+                s.fecha = p.fecha_rad
+        primera = p.solicitudes_penales[0] if p.solicitudes_penales else None
+        p.solicitud_penal = primera.tipo if primera else ""
+    else:
+        p.solicitudes_penales = []
+
+
 def gestion_garantias(p, acts: Iterable, cal: Calendario) -> tuple[Actuacion, bool]:
     """Una sola actuación de radicación para todas las solicitudes de garantías. Devuelve (actuación, es_nueva)."""
     sols = list(p.solicitudes_penales)

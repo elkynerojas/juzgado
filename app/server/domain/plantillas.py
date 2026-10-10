@@ -35,6 +35,10 @@ def fill_tpl(
         "{{radicado}}": p.radicado or "",
         "{{radicado_full}}": radicado_completo(prefijo, p.radicado),
         "{{proceso}}": p.clase or "",
+        "{{naturaleza}}": p.naturaleza or "",
+        # el CUI identifica el proceso penal igual que el radicado identifica el civil
+        "{{cui}}": p.noticia_criminal or "",
+        "{{tipo_sierju}}": p.tipo_sierju or "",
         "{{demandante}}": p.demandante or "",
         "{{demandado}}": p.demandado or "",
         "{{cuaderno}}": (a.cuaderno or "") if a else "",

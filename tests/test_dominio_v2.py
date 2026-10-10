@@ -191,3 +191,42 @@ def test_siguiente_cuaderno_incidente():
     assert A.siguiente_cuaderno_incidente("Incidente", ["Principal", "Incidente de desacato 4"]) == "Incidente 1"
     assert A.siguiente_cuaderno_incidente("Incidente", ["incidente 2", "Incidente 10", "Incidente x"]) == "Incidente 11"
     assert A.siguiente_cuaderno_incidente("Incidente de desacato", ["Incidente de desacato 1", "Incidente 7"]) == "Incidente de desacato 2"
+
+
+# ---------- normalización de saveProc ----------
+
+# campos del proceso que normalizar_proceso toca (los demás los copia el formulario tal cual)
+NORMALIZADOS = (
+    "fecha_terminacion", "fecha_archivo", "fecha_tramite_posterior", "cuadernos",
+    "clase", "delitos_adicionales", "forma_salida", "solicitud_penal", "cuaderno_inicial",
+)  # fmt: skip
+HOY = date(2026, 9, 30)  # la fecha fija del generador
+
+
+@pytest.mark.parametrize("caso", G["normalizacion"], ids=[c["nombre"] for c in G["normalizacion"]])
+def test_normalizar_proceso(caso):
+    js = caso["proceso"]
+    p = proceso_desde_legacy(js)
+    # el formulario manda los cuadernos y la fecha del trámite posterior sin resolver todavía
+    p.cuadernos = []
+    p.fecha_terminacion = f(caso["entrada"]["campos"].get("p_fterm"))
+    p.fecha_archivo = f(caso["entrada"]["campos"].get("p_farch"))
+    p.fecha_tramite_posterior = f(caso["entrada"]["campos"].get("p_tpfecha"))
+    p.clase = caso["entrada"]["campos"].get("p_clase", "Ejecutivo")
+    p.delitos_adicionales = list(caso["entrada"]["delitos"])
+    p.forma_salida = caso["entrada"]["campos"].get("p_salida", "")
+    p.solicitud_penal = ""
+    for s in p.solicitudes_penales:
+        s.fecha = None  # el formulario las manda sin fecha propia; la toma de la radicación
+
+    A.normalizar_proceso(p, HOY, crear_medidas=caso["entrada"]["campos"].get("p_crearmed") == "Sí")
+
+    esperado = {k: _plano(f(js[_js(k)]) if k.startswith("fecha") else js[_js(k)]) for k in NORMALIZADOS}
+    assert {k: _plano(getattr(p, k)) for k in NORMALIZADOS} == esperado
+    assert [_plano(s.fecha) for s in p.solicitudes_penales] == [_plano(f(s["fecha"])) for s in js["solicitudesPenales"]]
+
+
+def _js(k: str) -> str:
+    """fecha_terminacion -> fechaTerminacion"""
+    cabeza, *resto = k.split("_")
+    return cabeza + "".join(x.capitalize() for x in resto)

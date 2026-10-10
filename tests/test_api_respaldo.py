@@ -28,7 +28,8 @@ def test_exportar_vaciar_restaurar_deja_todo_igual(admin):
     r = admin.get("/api/respaldo")
     assert "attachment" in r.headers["content-disposition"] and r.headers["content-type"] == "application/json"
     respaldo = r.json()
-    assert respaldo["formato"] == "control-procesos" and len(respaldo["procesos"]) == 7 and len(respaldo["actuaciones"]) == 18
+    # 29 actuaciones: 27 de los ejemplos, el memorial y la actuación inicial que el proceso crea solo
+    assert respaldo["formato"] == "control-procesos" and len(respaldo["procesos"]) == 13 and len(respaldo["actuaciones"]) == 29
     assert respaldo["procesos"][-1]["creado_por"] == "admin"
     assert respaldo["config"]["membrete"].startswith("data:image/png;base64,")
     antes = estado(admin)
@@ -45,11 +46,13 @@ def test_exportar_vaciar_restaurar_deja_todo_igual(admin):
     r = admin.post("/api/respaldo/restaurar", json=respaldo)
     assert r.status_code == 200, r.text
     assert r.json() | {"respaldo_previo": ""} == {
-        "formato": "control-procesos", "procesos": 7, "actuaciones": 18, "actuaciones_omitidas": 0,
-        "usuarios_restaurados": 0, "stat_eventos": 0, "respaldo_previo": "",
+        "formato": "control-procesos", "procesos": 13, "actuaciones": 29, "actuaciones_omitidas": 0,
+        "usuarios_restaurados": 0, "stat_eventos": 2, "respaldo_previo": "",
     }  # fmt: skip
     assert estado(admin) == antes
-    assert admin.get(f"/api/procesos/{pid}").json()["actuaciones"][0]["derivado"]["codigo"] == 3
+    acts = admin.get(f"/api/procesos/{pid}").json()["actuaciones"]
+    assert [a["descripcion"] for a in acts] == ["Se radica demanda", "Memorial"]
+    assert acts[0]["tipo_solicitud"] == "Demanda" and acts[0]["fecha_memorial"] == "2026-03-01"
     # quedó el respaldo previo del estado dañado y la sesión sigue viva
     archivos = admin.get("/api/respaldo/archivos").json()
     assert [a["nombre"] for a in archivos] == [r.json()["respaldo_previo"]] and not archivos[0]["automatico"]
@@ -67,7 +70,7 @@ def test_restaurar_respaldo_del_html_original(admin):
     res = r.json()
     assert (res["formato"], res["procesos"], res["actuaciones"], res["actuaciones_omitidas"]) == ("legacy", 6, 17, 1)
 
-    procesos = admin.get("/api/procesos").json()
+    procesos = admin.get("/api/procesos").json()["filas"]
     assert {p["id"] for p in procesos} == {p["id"] for p in legacy["procesos"]}  # se conservan los ids
     p0 = admin.get(f"/api/procesos/{legacy['procesos'][0]['id']}").json()
     assert p0["notas"] == "Nota del respaldo viejo" and p0["fecha_rad"] == "2019-05-10" and len(p0["actuaciones"]) == 4
@@ -170,7 +173,7 @@ def test_respaldo_automatico_y_archivos(app, admin):
     assert tarea(2026, 10, 1, 7, 29) is None  # aún no es la hora
     primero = tarea(2026, 10, 1, 7, 30)
     assert primero.name == "respaldo_auto_2026-10-01_073000.json"
-    assert len(json.loads(primero.read_text(encoding="utf-8"))["procesos"]) == 6
+    assert len(json.loads(primero.read_text(encoding="utf-8"))["procesos"]) == 12
     assert tarea(2026, 10, 1, 9, 0) is None  # uno por día
     assert admin.get("/api/respaldo/programacion").json()["ultimo"] == "2026-10-01"
     assert tarea(2026, 10, 2, 8, 0).name == "respaldo_auto_2026-10-02_080000.json"
@@ -185,7 +188,7 @@ def test_respaldo_automatico_y_archivos(app, admin):
     nombre = admin.post("/api/respaldo/archivos").json()["nombre"]
     assert nombre.startswith("respaldo_auto_") and len(admin.get("/api/respaldo/archivos").json()) == 3
     admin.post("/api/datos/vaciar")
-    assert admin.post(f"/api/respaldo/archivos/{nombre}/restaurar").json()["procesos"] == 6
-    assert admin.get("/api/tablero").json()["procesos"] == 6
+    assert admin.post(f"/api/respaldo/archivos/{nombre}/restaurar").json()["procesos"] == 12
+    assert admin.get("/api/tablero").json()["procesos"] == 12
     for malo in ("noexiste.json", "..%2F..%2Fapi.db", "api.db"):
         assert admin.get(f"/api/respaldo/archivos/{malo}").status_code == 404

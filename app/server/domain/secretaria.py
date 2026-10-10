@@ -20,6 +20,33 @@ CORRE = "corre"
 SUSPENDIDA = "suspendida"
 EN_FIRME = "en_firme"
 
+# catálogos del formulario de actuación (los de la v2, tal cual)
+TIPOS_PROVIDENCIA = ("", "Auto interlocutorio", "Sentencia", "Medida cautelar")
+RECURSOS = ("", "Reposición", "Apelación", "Queja", "Súplica", "Casación", "Impugnación", "Consulta")
+OBJETOS_RECURSO = ("Auto", "Sentencia")
+RESULTADOS_SUPERIOR = (
+    "",
+    "Confirman totalmente la decisión",
+    "Modifican la decisión",
+    "Revocan la decisión",
+    "Decretan nulidad",
+    "Inadmitidos",
+    "Desiertos",
+    "Desistidos",
+)
+NOTIF_FORMAS = ("", "Por estado", "Personal / electrónica", "Por edicto", "En estrados")
+TRAMITES_POSTERIORES = (
+    "",
+    "Avalúos",
+    "Liquidación de costas y créditos",
+    "Remates",
+    "Incidentes",
+    "Solicitudes sobre medidas cautelares",
+    "Entrega de inmuebles",
+    "Otros",
+)
+SI_NO = ("", "Sí")
+
 
 def fecha_gestion_secretaria(d: date | None, cal: Calendario) -> date | None:
     """La secretaría gestiona el mismo día si es hábil; si no, el siguiente hábil."""

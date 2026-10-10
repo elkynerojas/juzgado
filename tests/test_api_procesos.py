@@ -28,7 +28,7 @@ def test_ciclo_de_un_proceso(admin):
     assert d["derivado"]["inactividad"] == "— (suspendido)" and d["actuaciones"] == []
     assert admin.get("/api/procesos/noexiste").status_code == 404
     assert admin.delete(f"/api/procesos/{p['id']}").status_code == 204
-    assert admin.get("/api/procesos").json() == []
+    assert admin.get("/api/procesos").json()["filas"] == []
 
 
 def test_actuaciones_y_derivados(admin):
@@ -37,9 +37,10 @@ def test_actuaciones_y_derivados(admin):
     assert admin.post(base, json={"descripcion": ""}).status_code == 422
     assert admin.post("/api/procesos/noexiste/actuaciones", json={"descripcion": "x"}).status_code == 404
 
+    # la secretaría gestiona el memorial sola: la constancia queda puesta al guardar (automatismo de la v2)
     a = admin.post(base, json={"descripcion": "Memorial recibido", "fecha_memorial": dia(-4), "constancia": "", "termino_dias": ""}).json()
-    assert a["derivado"]["codigo"] == 3 and a["derivado"]["situacion"] == "Secretaría: sin constancia"
-    assert a["derivado"]["dias"] == 4 and a["derivado"]["ubicacion"] == "Secretaría"
+    assert a["constancia"] and a["derivado"]["codigo"] == 9 and a["derivado"]["situacion"] == "En trámite"
+    assert a["derivado"]["ubicacion"] == "Secretaría"
 
     datos = {k: a[k] for k in a if k not in ("derivado", "siguiente", "id", "proceso_id")}
     a = admin.put(f"/api/actuaciones/{a['id']}", json=datos | {"constancia": dia(-3), "pasa": "Sí", "pase": dia(-2)}).json()
@@ -50,14 +51,32 @@ def test_actuaciones_y_derivados(admin):
     assert d["derivado"]["rep_despacho"] == 1 and d["derivado"]["inactividad"] == "Juzgado (despacho)"
     assert d["derivado"]["dias_sin_mov"] == 2 and len(d["actuaciones"]) == 1
 
-    lista = admin.get("/api/procesos", params={"filtro": "ad"}).json()
+    lista = admin.get("/api/procesos", params={"filtro": "ad"}).json()["filas"]
     assert [p["id"] for p in lista] == [pid]
-    assert admin.get("/api/procesos", params={"filtro": "sc"}).json() == []
-    assert len(admin.get("/api/procesos", params={"q": "MEMORIAL rec"}).json()) == 1
-    assert admin.get("/api/procesos", params={"q": "zzz"}).json() == []
+    assert admin.get("/api/procesos", params={"filtro": "sc"}).json()["filas"] == []
+    assert len(admin.get("/api/procesos", params={"q": "MEMORIAL rec"}).json()["filas"]) == 1
+    assert admin.get("/api/procesos", params={"q": "zzz"}).json()["filas"] == []
 
     assert admin.delete(f"/api/actuaciones/{a['id']}").status_code == 204
     assert admin.get(f"/api/procesos/{pid}").json()["actuaciones"] == []
+
+
+def test_sin_constancia_cuando_la_activa_un_vencimiento(admin):
+    """El automatismo solo gestiona memoriales; por vencimiento de término la constancia sigue siendo manual."""
+    pid = admin.post("/api/procesos", json=PROC).json()["id"]
+    a = admin.post(
+        f"/api/procesos/{pid}/actuaciones",
+        json={
+            "descripcion": "Vencido el traslado",
+            "origen": "Vencimiento de término",
+            "termino": "(personalizado)",
+            "termino_dias": 3,
+            "termino_habil": False,
+            "fecha_inicio": dia(-10),
+        },
+    ).json()
+    assert a["constancia"] is None
+    assert a["derivado"]["codigo"] == 3 and a["derivado"]["situacion"] == "Secretaría: sin constancia"
 
 
 def test_vista_previa_y_calendario(admin):
@@ -104,27 +123,35 @@ def test_ruta_propone_siguiente_paso(admin):
 
 
 def test_ejemplos_tablero_y_paquetes(admin):
-    assert admin.post("/api/datos/ejemplos").json() == {"procesos": 6, "actuaciones": 17}
+    assert admin.post("/api/datos/ejemplos").json() == {"procesos": 12, "actuaciones": 27}
     t = admin.get("/api/tablero").json()
-    assert t["procesos"] == 6 and t["hoy"] == dia(0)
-    assert sum(x["total"] for x in t["por_situacion"]) == 17
+    assert t["procesos"] == 12 and t["hoy"] == dia(0)
+    assert sum(x["total"] for x in t["por_situacion"]) == 27
     por_codigo = {x["codigo"]: x["total"] for x in t["por_situacion"]}
     assert (t["sin_constancia"], t["falta_pasar"], t["al_despacho"]) == (por_codigo[3], por_codigo[4], por_codigo[5])
-    assert t["al_despacho"] == 4 and t["falta_pasar"] == 2 and por_codigo[0] == 1
+    assert t["al_despacho"] == 6 and t["falta_pasar"] == 2 and por_codigo[0] == 3
     fechas = [x["fecha"] for x in t["proximos"]]
     assert fechas == sorted(fechas) and all(x["faltan"] > 0 for x in t["proximos"])
 
-    procesos = admin.get("/api/procesos").json()
-    assert len(procesos) == 6
-    assert {p["radicado"] for p in admin.get("/api/procesos", params={"filtro": "susp"}).json()} == {"2024-00112"}
-    assert admin.get("/api/procesos", params={"q": "davivienda"}).json()[0]["radicado"] == "2021-00089"
+    lista = admin.get("/api/procesos").json()
+    assert len(lista["filas"]) == 12
+    # los selectores de filtro salen de la propia base
+    assert lista["anios"] == sorted(lista["anios"], reverse=True) and "2024-00112" in str(lista["filas"])
+    assert set(lista["areas"]) == {"Civil", "Familia", "Penal", "Constitucional", "Otros"}
+    assert {x["area"] for x in lista["filas"]} <= set(lista["areas"])
+    assert {p["radicado"] for p in admin.get("/api/procesos", params={"filtro": "susp"}).json()["filas"]} == {"2024-00112"}
+    assert admin.get("/api/procesos", params={"q": "davivienda"}).json()["filas"][0]["radicado"] == "2021-00089"
+    anio = admin.get("/api/procesos", params={"anio": "2024"}).json()["filas"]
+    assert anio and all(p["anio"] == "2024" for p in anio)
+    assert all(p["situacion"] == "Suspendido" for p in admin.get("/api/procesos", params={"situacion": "Suspendido"}).json()["filas"])
+    assert len(admin.get("/api/procesos", params={"area": "Penal"}).json()["filas"]) == 2
 
     pq = admin.get("/api/paquetes").json()
-    assert pq["total"] == 16 == len(pq["filas"]) == sum(pq["materias"].values())
+    assert pq["total"] == 24 == len(pq["filas"]) == sum(pq["materias"].values())
     activas = [x["derivado"]["fecha_activa"] or "9999" for x in pq["filas"]]
     assert activas == sorted(activas)
     liq = admin.get("/api/paquetes", params={"materia": "Liquidación de crédito"}).json()
-    assert len(liq["filas"]) == pq["materias"]["Liquidación de crédito"] == 2 and liq["total"] == 16
+    assert len(liq["filas"]) == pq["materias"]["Liquidación de crédito"] == 3 and liq["total"] == 24
     assert all(x["derivado"]["codigo"] == 5 for x in admin.get("/api/paquetes", params={"situacion": 5}).json()["filas"])
     assert len(admin.get("/api/paquetes", params={"tipo": "Nulidad procesal"}).json()["filas"]) == 1
     assert admin.get("/api/paquetes", params={"q": "banco agrario"}).json()["filas"][0]["radicado"] == "2019-00327"
@@ -132,7 +159,7 @@ def test_ejemplos_tablero_y_paquetes(admin):
     r = admin.get("/api/paquetes.csv", params={"materia": "Liquidación de crédito"})
     assert r.headers["content-type"].startswith("text/csv")
     lineas = r.content.decode("utf-8").splitlines()
-    assert lineas[0].startswith("﻿Radicado;Partes;Cuaderno") and len(lineas) == 3
+    assert lineas[0].startswith("﻿Radicado;Partes;Cuaderno") and len(lineas) == 4
     assert '"Banco Agrario de Colombia S.A. c/ Elcy Yaneth González Buitrago"' in r.text
 
     assert admin.post("/api/datos/vaciar").json() == {"procesos": 0, "actuaciones": 0}

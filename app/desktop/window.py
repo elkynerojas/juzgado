@@ -1,3 +1,4 @@
+import base64
 import logging
 import socket
 import webbrowser
@@ -122,6 +123,17 @@ class JsApi:
         ruta = rutas if isinstance(rutas, str) else rutas[0]
         # newline="" para no alterar los saltos de línea del CSV en Windows
         Path(ruta).write_text(contenido, encoding="utf-8", newline="")
+        return ruta
+
+    def guardar_binario(self, nombre, contenido_b64, descripcion="Todos los archivos (*.*)"):
+        """Guarda un archivo que no es texto (el Excel del SIERJU). El navegador lo manda en base64."""
+        rutas = self._window.create_file_dialog(
+            webview.FileDialog.SAVE, save_filename=nombre, file_types=(descripcion,)
+        )
+        if not rutas:
+            return None
+        ruta = rutas if isinstance(rutas, str) else rutas[0]
+        Path(ruta).write_bytes(base64.b64decode(contenido_b64))
         return ruta
 
     def abrir_en_navegador(self, url):

@@ -15,6 +15,8 @@
         <button class="tab active" data-view="tablero">Tablero</button>
         <button class="tab" data-view="procesos">Procesos</button>
         <button class="tab" data-view="gestion" data-permiso="paquetes.ver">Gesti&oacute;n por paquetes</button>
+        <button class="tab" data-view="audiencias" data-permiso="audiencias.ver"><span>Audiencias</span><span class="tabdot" id="audDot" style="display:none"></span></button>
+        <button class="tab" data-view="estadistica" data-permiso="estadistica.ver">Estad&iacute;stica</button>
       </div>
       <div class="searchbox"><input id="search" placeholder="Buscar radicado o parte&hellip;" autocomplete="off"></div>
       <button class="btn ghost sm" id="btnNuevoProc" data-permiso="procesos.crear">+ Proceso</button>
@@ -47,6 +49,8 @@
   <div id="view-tablero"></div>
   <div id="view-procesos" style="display:none"></div>
   <div id="view-gestion" style="display:none"></div>
+  <div id="view-audiencias" style="display:none"></div>
+  <div id="view-estadistica" style="display:none"></div>
   <div id="view-config" style="display:none"></div>
   <div id="view-detalle" style="display:none"></div>
 </div>
@@ -55,22 +59,111 @@
 <div class="overlay" id="ovProc"><div class="modal">
   <div class="mh"><h2 id="procTitle">Nuevo proceso</h2><button class="x" data-close>&times;</button></div>
   <div class="mb">
+    <div class="draftbar" id="procDraft" style="display:none"></div>
     <div class="frow">
       <div class="field"><label>Radicado <span class="req">*</span></label><input id="p_rad" placeholder="2026-00123"></div>
-      <div class="field"><label>Naturaleza</label><select id="p_nat"><option>Civil</option><option>Familia</option><option>Otro</option></select></div>
+      <div class="field"><label>Naturaleza</label><select id="p_nat"></select></div>
     </div>
-    <div class="field"><label>Clase / asunto</label><input id="p_clase" list="asuntos" placeholder="Ejecutivo, Verbal, Pertenencia, Alimentos&hellip;"><datalist id="asuntos"></datalist></div>
+    <div class="field" id="claseCampo"><label id="lblClase">Clase / asunto</label><input id="p_clase" list="asuntos" placeholder="Ejecutivo, Verbal, Pertenencia, Alimentos&hellip;"><datalist id="asuntos"></datalist></div>
+
+    <div class="block" id="penalCampos" style="display:none">
+      <div class="bt">Identificaci&oacute;n penal</div>
+      <div class="field"><label>N.&ordm; de noticia criminal (CUI)</label><input id="p_noticia" placeholder="Ej. 5400160011312026&hellip;"></div>
+      <div class="field" id="penProcWrap"><label>Procedimiento penal</label>
+        <select id="p_penproc"><option value="Garant&iacute;as">Control de garant&iacute;as</option><option value="Conocimiento">Conocimiento</option></select>
+        <div class="hint">Elija el procedimiento; luego escoja el delito y el sistema asigna la ley (906/1826).</div></div>
+      <div class="field" id="penalSolicitudUnica"><label>Tipo de entrada penal</label><select id="p_penalsol"></select></div>
+      <div id="penalSolicitudesMulti" style="display:none">
+        <div class="bt" style="margin-top:10px">Solicitudes de control de garant&iacute;as</div>
+        <div class="hint" style="margin-bottom:8px">Una misma radicaci&oacute;n puede contener varias solicitudes. Cada una se cuenta individualmente en SIERJU, sin duplicar la audiencia.</div>
+        <div id="p_solicitudes_lista"></div>
+        <button type="button" class="btn sm" data-acc="addSol">+ Agregar solicitud</button>
+      </div>
+    </div>
+
     <div class="frow">
-      <div class="field"><label>Demandante</label><input id="p_dte"></div>
-      <div class="field"><label>Demandado</label><input id="p_dda"></div>
+      <div class="field"><label id="lblSierju">Tipo SIERJU (estad&iacute;stica)</label><select id="p_sierju"></select>
+        <div class="hint">Se sugiere solo seg&uacute;n la clase; puede ajustarlo. Es lo que alimenta la estad&iacute;stica trimestral.</div></div>
+      <div class="field"><label>V&iacute;a</label><select id="p_via"><option>Oral</option><option>Escrito</option></select></div>
+    </div>
+    <div class="field" id="delitosExtra" style="display:none">
+      <div id="delitosExtraLista"></div>
+      <button type="button" class="btn ghost sm" data-acc="addDelito">+ Otro delito</button>
+      <div class="hint">&Uacute;selo si el proceso tiene m&aacute;s de un delito. La estad&iacute;stica cuenta el delito principal; los dem&aacute;s quedan como control.</div>
+    </div>
+
+    <div class="frow">
+      <div class="field"><label id="lblDte">Demandante</label><input id="p_dte"></div>
+      <div class="field"><label id="lblDda">Demandado</label><input id="p_dda"></div>
     </div>
     <div class="frow">
       <div class="field"><label>Fecha de radicaci&oacute;n</label><input id="p_frad" type="date"></div>
       <div class="field"><label>Situaci&oacute;n del proceso</label>
         <select id="p_sit"><option>Activo</option><option>Suspendido</option><option>Apelado</option><option>En consulta</option><option>Terminado</option><option>Archivado</option></select></div>
     </div>
+
+    <div class="block" id="ingresoInicial">
+      <div class="bt">Ingreso y creaci&oacute;n inicial</div>
+      <div class="field" id="pEntradaWrap"><label>Forma de entrada estad&iacute;stica</label><select id="p_entrada"></select>
+        <div class="hint">Determina la columna de entrada del SIERJU. No se infiere sola del radicado.</div></div>
+      <div class="frow">
+        <div class="field"><label>Cuaderno inicial</label><select id="p_cuainicial"></select></div>
+        <div class="field"><label>Crear tambi&eacute;n</label>
+          <select id="p_crearmed"><option value="no">S&oacute;lo cuaderno inicial</option><option value="si">Cuaderno inicial + Medidas cautelares</option></select></div>
+      </div>
+      <div class="field" id="pCrearActWrap"><label><input type="checkbox" id="p_crearact" checked style="width:auto;margin-right:6px">Crear autom&aacute;ticamente la actuaci&oacute;n que origina el expediente usando la fecha de radicaci&oacute;n</label>
+        <div class="hint">Evita digitar tres veces la misma fecha: el sistema calcula la fecha de gesti&oacute;n secretarial y el pase seg&uacute;n el calendario judicial.</div></div>
+    </div>
+
+    <div class="block" id="tutelaCampos" style="display:none">
+      <div class="bt">Tutela &mdash; seguimiento</div>
+      <div class="field"><label>&iquest;El juzgado concedi&oacute; medida provisional?</label>
+        <select id="p_medidatut"><option value="">No registrada</option><option>No</option><option>S&iacute;</option></select>
+        <div class="hint">Si es &ldquo;S&iacute;&rdquo;, se cuenta como medida provisional en el total de providencias.</div></div>
+      <div class="frow">
+        <div class="field"><label>&iquest;Se impugn&oacute; el fallo?</label>
+          <select id="p_impugna"><option value="">No registrado</option><option>No</option><option>S&iacute;</option></select></div>
+        <div class="field" id="impugBox" style="display:none"><label>Fecha de impugnaci&oacute;n</label><input id="p_impugfecha" type="date"></div>
+      </div>
+      <div class="field" id="dec2daBox" style="display:none"><label>Decisi&oacute;n de segunda instancia</label>
+        <select id="p_dec2da"><option value="">&mdash; sin resolver &mdash;</option><option>Confirman totalmente la decisi&oacute;n</option><option>Modifican la decisi&oacute;n</option><option>Revocan la decisi&oacute;n</option><option>Decretan nulidad</option></select></div>
+    </div>
+
+    <div class="block" id="desacatoCampos" style="display:none">
+      <div class="bt">Incidente de desacato &mdash; seguimiento</div>
+      <div class="frow">
+        <div class="field"><label>Radicado de la tutela de origen</label><input id="p_desTutela" placeholder="2026-00123"></div>
+        <div class="field"><label>Fecha de requerimiento previo</label><input id="p_desReq" type="date"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Decisi&oacute;n de apertura</label>
+          <select id="p_desApertura"><option value="">&mdash; sin definir &mdash;</option><option>Apertura</option><option>No apertura</option></select></div>
+        <div class="field"><label>Decisi&oacute;n grado de consulta</label>
+          <select id="p_desConsulta"><option value="">&mdash; sin consulta &mdash;</option><option>Confirma</option><option>Revoca</option><option>Declara nulidad</option></select></div>
+      </div>
+      <div class="hint">La decisi&oacute;n de fondo (sanciona / no sanciona&mdash;archiva) se registra en &ldquo;Forma de salida&rdquo;. El derecho debe coincidir con el de la tutela.</div>
+    </div>
+
     <div class="field"><label>Macroetapa actual (opcional)</label><input id="p_macro" list="macroetapas" placeholder="Traslado, Audiencia inicial, Ejecuci&oacute;n&hellip;"><datalist id="macroetapas"></datalist>
       <div class="hint">La etapa estable del proceso. Los frentes (cautelares, recursos, incidentes) se manejan como cuadernos, sin cambiar la macroetapa.</div></div>
+
+    <div class="block">
+      <div class="bt">Terminaci&oacute;n y salida</div>
+      <div class="frow">
+        <div class="field"><label>Fecha de terminaci&oacute;n</label><input id="p_fterm" type="date">
+          <div class="hint">Si deja la fecha vac&iacute;a y marca &ldquo;Terminado&rdquo;, se pone la de hoy.</div></div>
+        <div class="field"><label>Fecha de archivo</label><input id="p_farch" type="date"></div>
+      </div>
+      <div class="field" id="p_salida_wrap"><label>Forma de salida (SIERJU)</label><select id="p_salida"></select>
+        <div class="hint">C&oacute;mo termin&oacute; el proceso. En control de garant&iacute;as la salida se registra en cada solicitud.</div></div>
+    </div>
+
+    <div class="block" id="tpCampos" style="display:none">
+      <div class="bt">Tr&aacute;mite posterior</div>
+      <div class="field"><label><input type="checkbox" id="p_tp" style="width:auto;margin-right:6px">El proceso pas&oacute; a tr&aacute;mite posterior (contin&uacute;a con liquidaci&oacute;n, costas o remate)</label></div>
+      <div class="field" id="tpFechaBox" style="display:none"><label>Fecha de ingreso a tr&aacute;mite posterior</label><input id="p_tpfecha" type="date">
+        <div class="hint">Desde aqu&iacute; el proceso alimenta la secci&oacute;n de tr&aacute;mite posterior y sus solicitudes la de actuaciones.</div></div>
+    </div>
   </div>
   <div class="mf"><button class="btn danger" id="p_del" style="margin-right:auto; display:none">Eliminar</button><button class="btn" data-close>Cancelar</button><button class="btn primary" id="p_save">Guardar</button></div>
 </div></div>
@@ -79,55 +172,204 @@
 <div class="overlay" id="ovAct"><div class="modal">
   <div class="mh"><h2 id="actTitle">Nueva actuaci&oacute;n</h2><button class="x" data-close>&times;</button></div>
   <div class="mb">
-    <div class="frow">
-      <div class="field"><label>Cuaderno / tr&aacute;mite <span class="req">*</span></label><select id="a_cua"></select></div>
-      <div class="field"><label>Materia / tipo de gesti&oacute;n <span class="req">*</span></label><select id="a_mat"></select>
-        <div class="hint">Categor&iacute;a amplia para trabajar por paquetes.</div></div>
-    </div>
-    <div class="field"><label>Tipo de solicitud (cat&aacute;logo detallado)</label><select id="a_tipo"></select>
-      <div class="hint">Opcional. Permite el filtro fino (p. ej. &ldquo;Liquidaci&oacute;n del cr&eacute;dito&rdquo;, &ldquo;Solicitud de terminaci&oacute;n del proceso&rdquo;).</div></div>
-    <div class="field"><label>Ruta procesal (encadena el tr&aacute;mite hasta finalizar)</label><select id="a_ruta"></select>
-      <div class="previewbox tiny" id="rutaPrev" style="display:none"></div>
-      <div class="hint">Al elegir una ruta, el cuadro le propondr&aacute; el siguiente paso cuando cierre el actual. Usted confirma cada uno.</div></div>
-    <div class="frow">
-      <div class="field"><label>Origen del pendiente <span class="req">*</span></label>
-        <select id="a_ori"><option>Memorial</option><option>Vencimiento de t&eacute;rmino</option><option>Providencia (auto/sentencia)</option><option>Respuesta externa</option><option>Oficiosa</option></select></div>
-      <div class="field" id="fMem"><label>Fecha del memorial / hecho</label><input id="a_mem" type="date"></div>
-    </div>
-    <div class="field"><label>Descripci&oacute;n <span class="req">*</span></label><input id="a_desc" placeholder="Ej: Ejecutante radica liquidaci&oacute;n del cr&eacute;dito"></div>
+    <div class="draftbar" id="actDraft" style="display:none"></div>
 
-    <div class="block">
-      <div class="bt">Compuerta de secretar&iacute;a</div>
+    <div class="phase phase-in">
+      <div class="phase-h">&#9312; Ingreso de la actuaci&oacute;n</div>
+      <div class="frow">
+        <div class="field"><label>Cuaderno / tr&aacute;mite <span class="req">*</span></label><select id="a_cua"></select>
+          <div style="display:flex;gap:6px;margin-top:4px">
+            <button type="button" class="btn ghost sm" data-acc="incidente" data-base="Incidente">+ Incidente (nuevo cuaderno)</button>
+            <button type="button" class="btn ghost sm" id="btnDesac" style="display:none" data-acc="incidente" data-base="Incidente de desacato">+ Incidente de desacato</button>
+          </div>
+          <div class="hint">Cada incidente va en su propio cuaderno numerado dentro del expediente.</div></div>
+        <div class="field"><label>Tipo de gesti&oacute;n / actuaci&oacute;n <span class="req">*</span></label><select id="a_mat"></select>
+          <div class="hint">Qu&eacute; se est&aacute; tramitando. Propone el origen y la descripci&oacute;n.</div></div>
+      </div>
+      <div class="field"><label>Tipo de solicitud (cat&aacute;logo detallado)</label><select id="a_tipo"></select>
+        <div class="hint">Opcional. Permite el filtro fino y, en penal, el tipo de solicitud de garant&iacute;as.</div></div>
+      <div class="frow">
+        <div class="field"><label>Origen del pendiente <span class="req">*</span></label>
+          <select id="a_ori"><option>Memorial</option><option>Vencimiento de t&eacute;rmino</option><option>Providencia (auto/sentencia)</option><option>Respuesta externa</option><option>Oficiosa</option></select></div>
+        <div class="field" id="fMem"><label>Fecha del memorial / hecho</label><input id="a_mem" type="date"></div>
+      </div>
+      <div class="field"><label>Descripci&oacute;n <span class="req">*</span></label><input id="a_desc" placeholder="Ej: Ejecutante radica liquidaci&oacute;n del cr&eacute;dito"></div>
       <div class="frow">
         <div class="field"><label>Constancia secretarial (fecha)</label><input id="a_cons" type="date"></div>
         <div class="field"><label>&iquest;Pasa al despacho?</label><select id="a_pasa"><option value="">&mdash; sin decidir &mdash;</option><option>S&iacute;</option><option>No &ndash; tr&aacute;mite secretar&iacute;a</option></select></div>
       </div>
       <div class="field" id="fPase"><label>Fecha de pase al despacho</label><input id="a_pase" type="date"></div>
+      <div class="field"><label>Ruta procesal (opcional: encadena el tr&aacute;mite)</label><select id="a_ruta"></select>
+        <div class="previewbox tiny" id="rutaPrev" style="display:none"></div>
+        <div class="hint">Al elegir una ruta, el cuadro propone el siguiente paso cuando cierre el actual. Usted confirma cada uno.</div></div>
     </div>
-    <div class="block">
-      <div class="bt">Resoluci&oacute;n y cierre</div>
+
+    <div class="phase phase-out">
+      <div class="phase-h">&#9313; Cierre / salida de la actuaci&oacute;n</div>
       <div class="frow">
         <div class="field"><label>Providencia / resuelta (fecha)</label><input id="a_prov" type="date"></div>
+        <div class="field"><label>Tipo de providencia</label><select id="a_tprov"></select></div>
+      </div>
+      <div class="frow">
         <div class="field"><label>Fecha de ejecutoria</label><input id="a_ejec" type="date"></div>
+        <div class="field"><label>Fecha cumplida / notificada</label><input id="a_cump" type="date"></div>
       </div>
-      <div class="field"><label>Fecha cumplida / notificada</label><input id="a_cump" type="date"></div>
-    </div>
-    <div class="block">
-      <div class="bt">T&eacute;rmino (opcional)</div>
-      <div class="field"><label>T&eacute;rmino aplicable</label><select id="a_term"></select></div>
-      <div class="frow" id="termCustom" style="display:none">
-        <div class="field"><label>D&iacute;as</label><input id="a_tdias" type="number" min="1"></div>
-        <div class="field"><label>C&oacute;mputo</label><select id="a_thab"><option value="true">D&iacute;as h&aacute;biles judiciales</option><option value="false">D&iacute;as calendario</option></select></div>
+      <div class="hint">Solo autos interlocutorios, sentencias y medidas cautelares cuentan para providencias. La <b>ejecutoria</b> da firmeza y habilita el conteo de recursos.</div>
+      <div class="frow">
+        <div class="field"><label>Notificado / publicado en estado (fecha)</label><input id="a_notif" type="date"></div>
+        <div class="field"><label>D&iacute;as h&aacute;biles de ejecutoria</label><input id="a_ejecdias" type="number" min="1" value="3"></div>
       </div>
-      <div class="field"><label>Fecha de inicio del t&eacute;rmino</label><input id="a_ini" type="date">
-        <div class="hint">&Aacute;nclela al hito real (ejecutoria, notificaci&oacute;n). Vac&iacute;a = t&eacute;rmino latente, no corre.</div></div>
-      <div class="previewbox" id="termPrev">Sin t&eacute;rmino.</div>
+      <div class="field"><label>Forma de notificaci&oacute;n</label><select id="a_notifforma"></select></div>
+      <div class="previewbox tiny" id="ejecPrev">Indique la fecha de notificaci&oacute;n para computar la ejecutoria.</div>
+
+      <div class="field"><label><b>Recurso interpuesto</b> contra la providencia</label><select id="a_recurso"></select></div>
+      <div id="recBox" style="display:none">
+        <div class="frow">
+          <div class="field"><label>Providencia objeto del recurso</label><select id="a_recobj"></select></div>
+          <div class="field"><label>Fecha del recurso</label><input id="a_recfecha" type="date"></div>
+        </div>
+        <div class="field"><label>Fecha de traslado a la contraparte</label><input id="a_rectraslado" type="date">
+          <div class="hint">Interpuesto el recurso, corre traslado a la contraparte antes de resolver.</div></div>
+        <div class="frow">
+          <div class="field"><label>Resultado / decisi&oacute;n que resuelve el recurso</label><select id="a_supres"></select></div>
+          <div class="field"><label>Fecha de la decisi&oacute;n</label><input id="a_supfecha" type="date"></div>
+        </div>
+        <div class="field"><label>&iquest;La decisi&oacute;n que resolvi&oacute; el recurso fue impugnada?</label>
+          <select id="a_recimpug"><option value="">&mdash; no / no aplica &mdash;</option><option>S&iacute;</option></select></div>
+        <div id="recImpugBox" style="display:none"><div class="frow">
+          <div class="field"><label>Resultado de la impugnaci&oacute;n</label><select id="a_recimpugres"></select></div>
+          <div class="field"><label>Fecha de la impugnaci&oacute;n</label><input id="a_recimpugfecha" type="date"></div>
+        </div></div>
+        <div class="hint">Al elegir un recurso se cuenta en recursos <b>interpuestos</b>; al registrar la decisi&oacute;n, en recursos <b>decididos</b>. La providencia no queda en firme hasta resolver todos los medios de impugnaci&oacute;n.</div>
+      </div>
+
+      <div class="frow">
+        <div class="field"><label>Modo de cierre de esta solicitud</label>
+          <select id="a_cierre"><option value="">No cierra a&uacute;n</option><option value="Providencia">Cierra con la providencia</option><option value="Ejecutoria">Cierra al quedar ejecutoriada</option><option value="Cumplimiento">Cierra al cumplirse / notificarse</option></select></div>
+        <div class="field"><label>Forma de salida SIERJU de la solicitud</label><select id="a_salstat"></select></div>
+      </div>
+      <div class="hint">La forma de salida clasifica la salida estad&iacute;stica; en control de garant&iacute;as cada solicitud entra y sale individualmente.</div>
     </div>
-    <div class="field"><label><input type="checkbox" id="a_susp" style="width:auto; margin-right:6px">Esta actuaci&oacute;n suspende el proceso principal</label></div>
+
+    <div class="phase phase-aud">
+      <div class="phase-h">&#128197; &iquest;El cierre fija una audiencia?</div>
+      <div class="field"><label><input type="checkbox" id="a_esaud" style="width:auto;margin-right:6px">S&iacute; &mdash; esta actuaci&oacute;n o providencia fija (o registra) una audiencia</label></div>
+      <div class="hint" style="margin:-2px 0 6px">Una audiencia puede nacer de tres formas: como <b>consecuencia de esta providencia</b> (marque la casilla), de forma <b>directa</b> (bot&oacute;n &ldquo;+ Audiencia&rdquo; del proceso) o <b>dentro de otra audiencia</b> (al registrar su resultado se fija la siguiente).</div>
+      <div id="audBox" style="display:none">
+        <div class="hint" style="margin-bottom:6px">Se cuenta como <b>programada</b>; al indicar el <b>resultado</b> se llena su columna y, solo si se <b>aplaza</b> o se <b>cancela</b>, la causa correspondiente.</div>
+        <div class="frow">
+          <div class="field"><label>Fecha de la audiencia</label><input id="a_audfecha" type="date"></div>
+          <div class="field"><label>Hora</label><input id="a_audhora" type="time"></div>
+        </div>
+        <div class="field"><label>Clase de audiencia</label><select id="a_audtipo"></select>
+          <div class="hint">Civil y familia: &ldquo;Audiencia&rdquo;. Penal: la etapa seg&uacute;n la ley.</div></div>
+        <div class="field" id="audInmediataBox" style="display:none"><label><input type="checkbox" id="a_audinmediata" style="width:auto;margin-right:6px">Audiencia <b>inmediata</b> de control de garant&iacute;as (sin programaci&oacute;n previa)</label></div>
+        <div class="field"><label>Estado / resultado</label><select id="a_audestado"></select></div>
+        <div class="field" id="audCausaBox" style="display:none"><label id="audCausaLbl">Causa</label><select id="a_audcausa"></select></div>
+      </div>
+    </div>
+
+    <div class="notes" id="advBox">
+      <div class="nh" id="advToggle"><span>&#9881;&#65039; Opciones avanzadas &mdash; t&eacute;rmino, suspensi&oacute;n, tr&aacute;mite posterior, responsable</span><span class="chev">&#9656;</span></div>
+      <div class="nb">
+        <div class="field"><label>T&eacute;rmino aplicable</label><select id="a_term"></select></div>
+        <div class="frow" id="termCustom" style="display:none">
+          <div class="field"><label>D&iacute;as</label><input id="a_tdias" type="number" min="1"></div>
+          <div class="field"><label>C&oacute;mputo</label><select id="a_thab"><option value="true">D&iacute;as h&aacute;biles judiciales</option><option value="false">D&iacute;as calendario</option></select></div>
+        </div>
+        <div class="field"><label>Fecha de inicio del t&eacute;rmino</label><input id="a_ini" type="date">
+          <div class="hint">&Aacute;nclela al hito real (ejecutoria, notificaci&oacute;n). Vac&iacute;a = t&eacute;rmino latente, no corre.</div></div>
+        <div class="previewbox" id="termPrev">Sin t&eacute;rmino.</div>
+        <div class="field"><label><input type="checkbox" id="a_susp" style="width:auto; margin-right:6px">Esta actuaci&oacute;n suspende el proceso principal</label></div>
+        <div class="field"><label>Actuaci&oacute;n de tr&aacute;mite posterior (si aplica)</label><select id="a_tp"></select></div>
+        <div class="field"><label>Asignado a (responsable)</label><select id="a_asig"></select>
+          <div class="hint">Se gestiona en Configuraci&oacute;n &rsaquo; Personal y cargos.</div></div>
+        <div class="field"><label><input id="a_remate" type="checkbox" style="width:auto;margin-right:6px">Esta actuaci&oacute;n registra una diligencia de remate realizada</label></div>
+        <div class="field"><label><input id="a_amparo" type="checkbox" style="width:auto;margin-right:6px">Esta providencia concede amparo de pobreza</label></div>
+      </div>
+    </div>
+
     <div class="field"><label>Observaciones</label><textarea id="a_obs" rows="2"></textarea></div>
     <div class="previewbox" id="actPrev"></div>
   </div>
   <div class="mf"><button class="btn danger" id="a_del" style="margin-right:auto; display:none">Eliminar</button><button class="btn" data-close>Cancelar</button><button class="btn primary" id="a_save">Guardar actuaci&oacute;n</button></div>
+</div></div>
+
+<!-- Modal Fijar audiencia -->
+<div class="overlay" id="ovAud"><div class="modal" style="max-width:560px">
+  <div class="mh"><h2>Fijar audiencia</h2><button class="x" data-close>&times;</button></div>
+  <div class="mb">
+    <div class="field"><label>Proceso <span class="req">*</span></label><select id="au_proc"></select></div>
+    <div class="frow">
+      <div class="field"><label>Cuaderno</label><select id="au_cua"></select></div>
+      <div class="field"><label>Clase de audiencia</label><select id="au_tipo"></select></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Fecha <span class="req">*</span></label><input id="au_f" type="date"></div>
+      <div class="field"><label>Hora</label><input id="au_h" type="time"></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Estado</label><select id="au_est"></select></div>
+      <div class="field"><label>Responsable</label><select id="au_resp"></select></div>
+    </div>
+    <div class="field" id="au_causaBox" style="display:none"><label id="au_causaLbl">Causa</label><select id="au_causa"></select></div>
+    <div class="previewbox tiny">Queda registrada como una actuaci&oacute;n del cuaderno, y cuenta como audiencia <b>programada</b> en la estad&iacute;stica. Al llegar la fecha, el sistema la lista en &ldquo;por confirmar&rdquo; hasta que indique qu&eacute; pas&oacute;.</div>
+  </div>
+  <div class="mf"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="au_save">Fijar audiencia</button></div>
+</div></div>
+
+<!-- Modal Resultado de la audiencia -->
+<div class="overlay" id="ovResolver"><div class="modal" style="max-width:520px">
+  <div class="mh"><h2>Resultado de la audiencia</h2><button class="x" data-close>&times;</button></div>
+  <div class="mb">
+    <div class="previewbox tiny" id="rs_info"></div>
+    <div class="field"><label>&iquest;Qu&eacute; pas&oacute; con la audiencia?</label><select id="rs_estado"></select></div>
+    <div class="field" id="rs_causaBox" style="display:none"><label id="rs_causaLbl">Causa</label><select id="rs_causa"></select></div>
+    <div class="block" style="padding:10px">
+      <div class="bt">&iquest;En esta diligencia se fij&oacute; una nueva audiencia?</div>
+      <div class="frow">
+        <div class="field"><label>Fecha</label><input id="rs_nueva" type="date"></div>
+        <div class="field"><label>Hora</label><input id="rs_nuevahora" type="time"></div>
+      </div>
+      <div class="field"><label>Clase de audiencia</label><select id="rs_nuevatipo"></select></div>
+      <div class="hint">D&eacute;jelo vac&iacute;o si no se fij&oacute; ninguna. Si la audiencia se aplaz&oacute; o se suspendi&oacute;, la nueva queda como <b>reprogramaci&oacute;n</b>.</div>
+    </div>
+  </div>
+  <div class="mf"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="rs_save">Guardar resultado</button></div>
+</div></div>
+
+<!-- Modal Dato estadístico especial -->
+<div class="overlay" id="ovStatEvent"><div class="modal" style="max-width:860px">
+  <div class="mh"><h2>Registrar dato estad&iacute;stico especial</h2><button class="x" data-close>&times;</button></div>
+  <div class="mb">
+    <div class="frow">
+      <div class="field"><label>Fecha <span class="req">*</span></label><input id="se_fecha" type="date"></div>
+      <div class="field"><label>Proceso relacionado (opcional)</label><select id="se_proc"></select></div>
+    </div>
+    <div class="field"><label>Secci&oacute;n del formato <span class="req">*</span></label><select id="se_sec"></select></div>
+    <div class="field"><label>Fila oficial <span class="req">*</span></label><select id="se_row"></select></div>
+    <div class="field"><label>Columna oficial <span class="req">*</span></label><select id="se_col"></select></div>
+    <div class="frow">
+      <div class="field"><label>Cantidad</label><input id="se_cant" type="number" min="1" value="1"></div>
+      <div class="field"><label>Observaci&oacute;n</label><input id="se_nota" placeholder="Origen o explicaci&oacute;n del dato"></div>
+    </div>
+    <div class="previewbox tiny">Use este registro para datos que no nacen de una actuaci&oacute;n: caracterizaci&oacute;n de partes, turnos de garant&iacute;as, indiciados por g&eacute;nero, resultados del superior, Ley 1820 u otras variables especiales.</div>
+  </div>
+  <div class="mf"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="se_save">Guardar dato</button></div>
+</div></div>
+
+<!-- Modal Exportar el Excel oficial -->
+<div class="overlay" id="ovExp"><div class="modal" style="max-width:480px">
+  <div class="mh"><h2>Exportar el Excel oficial</h2><button class="x" data-close>&times;</button></div>
+  <div class="mb">
+    <div class="field"><label>Trimestre</label><select id="xd_trim"></select></div>
+    <div class="frow">
+      <div class="field"><label>Desde</label><input id="xd_desde" type="date"></div>
+      <div class="field"><label>Hasta</label><input id="xd_hasta" type="date"></div>
+    </div>
+    <div class="previewbox tiny" id="xd_status">Se llena la plantilla oficial conservando su formato: encabezados, estilos y f&oacute;rmulas quedan intactos.</div>
+  </div>
+  <div class="mf"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="xd_go">&#11015; Descargar</button></div>
 </div></div>
 
 <!-- Modal Generar documento -->

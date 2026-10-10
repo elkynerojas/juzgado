@@ -1,6 +1,8 @@
 from datetime import date, datetime
 
 from app.server.domain import estados as E
+from app.server.domain import naturaleza as N
+from app.server.domain import secretaria as Sec
 from app.server.domain.rutas import siguiente_paso
 
 OCULTOS = {"password_hash"}
@@ -28,8 +30,10 @@ def derivado_act(a, ctx: E.Contexto) -> dict:
     c = E.codigo(a, ctx)
     ti = E.term_info(a, ctx)
     texto, badge = E.resultado(a, c, ctx)
+    ej = Sec.ejecutoria(a, ctx.calendario)
     return {
         "codigo": c,
+        "ejecutoria_estado": {"estado": ej.estado, "fecha": iso(ej.fecha), "pendiente": ej.pendiente},
         "situacion": E.SIT[c],
         "badge": E.SIT_BADGE[c],
         "ubicacion": E.ubicacion(c),
@@ -66,8 +70,25 @@ def paso_dict(p) -> dict:
     }
 
 
+def solicitud_dict(s) -> dict:
+    return a_dict(s)
+
+
+def proceso_plano(p) -> dict:
+    """El proceso con sus solicitudes penales: es lo que se audita y lo que va al respaldo."""
+    return a_dict(p) | {"solicitudes_penales": [solicitud_dict(x) for x in p.solicitudes_penales]}
+
+
+def anio_de(radicado: str | None) -> str:
+    """El año que encabeza el radicado ("2026-00123" → "2026"); vacío si no se puede leer."""
+    cabeza = (radicado or "").strip().split("-")[0]
+    return cabeza if cabeza.isdigit() and len(cabeza) == 4 else ""
+
+
 def proc_dict(p, d: E.ProcDeriv) -> dict:
     out = a_dict(p)
+    out["area"] = N.area_de(p.naturaleza)
+    out["anio"] = anio_de(p.radicado)
     out["derivado"] = {
         "vivas": d.vivas,
         "rep_despacho": d.rep_despacho,

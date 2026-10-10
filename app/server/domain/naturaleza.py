@@ -19,6 +19,13 @@ LEYES_PENALES = ("906", "1826")
 # lo que se elige en el formulario; la penal se guarda compuesta con componer_naturaleza()
 NATURALEZAS = (CIVIL, FAMILIA, PENAL, TUTELA, DESACATO, HABEAS, OTRO)
 
+AREA_CIVIL = "Civil"
+AREA_FAMILIA = "Familia"
+AREA_PENAL = "Penal"
+AREA_CONSTITUCIONAL = "Constitucional"
+AREA_OTROS = "Otros"
+AREAS = (AREA_CIVIL, AREA_FAMILIA, AREA_PENAL, AREA_CONSTITUCIONAL, AREA_OTROS)
+
 _GESTION_PENAL = (
     "Recurso de reposición",
     "Recurso de apelación",
@@ -51,7 +58,9 @@ _ENTRADAS_DESACATO = (
     "Reingreso por nulidad incidentes de desacato",
     "Otras entradas no efectivas",
 )
-_SALIDAS_GARANTIAS_ACT = ("Remitidos a otros despachos", "Autos decisiones de fondo", "Otras salidas no efectivas")
+# la única salida que exige explicar el motivo
+SALIDA_NO_EFECTIVA = "Otras salidas no efectivas"
+_SALIDAS_GARANTIAS_ACT = ("Remitidos a otros despachos", "Autos decisiones de fondo", SALIDA_NO_EFECTIVA)
 
 
 def _sj() -> dict:
@@ -82,6 +91,36 @@ def componer_naturaleza(ley: str, procedimiento: str) -> str:
     if ley not in LEYES_PENALES or procedimiento not in (GARANTIAS, CONOCIMIENTO):
         raise ValueError(f"Naturaleza penal inválida: ley {ley!r}, {procedimiento!r}")
     return f"{PENAL} {ley} - {procedimiento}"
+
+
+PENALES = tuple(componer_naturaleza(ley, p) for ley in LEYES_PENALES for p in (GARANTIAS, CONOCIMIENTO))
+
+# lo que la aplicación guarda: las simples (sin "Penal" a secas) y las penales ya compuestas
+NATURALEZAS_GUARDABLES = (CIVIL, FAMILIA, TUTELA, DESACATO, HABEAS, OTRO, *PENALES)
+
+
+def guardable(nat: str | None) -> bool:
+    """Acepta lo que el formulario produce. "Penal" a secas no, porque le falta ley y procedimiento.
+
+    Tolera otras penales compuestas ("Penal Ley 600 - Conocimiento", "Penal 1098 - Garantías") y el alias
+    "Desacato": no las genera la aplicación, pero llegan en respaldos del HTML y hay que poder editarlas.
+    """
+    if nat in NATURALEZAS_GUARDABLES or nat == DESACATO_CORTO:
+        return True
+    return es_penal(nat) and " - " in nat
+
+
+def area_de(nat: str | None) -> str:
+    """Área de trabajo a la que pertenece el proceso; agrupa los filtros de Procesos y de Audiencias."""
+    if nat == CIVIL:
+        return AREA_CIVIL
+    if nat == FAMILIA:
+        return AREA_FAMILIA
+    if es_penal(nat):
+        return AREA_PENAL
+    if es_constitucional(nat):
+        return AREA_CONSTITUCIONAL
+    return AREA_OTROS
 
 
 def _ley(nat: str) -> str:

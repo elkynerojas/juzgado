@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import Engine
 
-from app.server.api import admin, auth, config, documentos, procesos, respaldo, usuarios
+from app.server.api import admin, audiencias, auth, config, documentos, estadistica, procesos, respaldo, usuarios
 from app.server.core.settings import dir_respaldos
 from app.server.db.migrate import actualizar
 from app.server.db.seeds import sembrar, sembrar_roles
@@ -51,7 +51,7 @@ def create_app(engine: Engine | None = None, respaldos: Path | None = None, tare
     def spike_doc():
         return DOC_PRUEBA
 
-    for modulo in (auth, usuarios, procesos, config, documentos, admin, respaldo):
+    for modulo in (auth, usuarios, procesos, audiencias, estadistica, config, documentos, admin, respaldo):
         app.include_router(modulo.r)
 
     app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

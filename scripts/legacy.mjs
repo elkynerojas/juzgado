@@ -27,6 +27,8 @@ export function cargar(extra, archivo = V1) {
     setTimeout: () => 0,
     clearTimeout() {},
     atob: s => Buffer.from(s, 'base64').toString('binary'),
+    // la v2 arma el Excel oficial con estas dos; sin ellas no se puede ejecutar doFillTemplate
+    TextDecoder, TextEncoder,
     console,
   });
   vm.runInContext(fuente(archivo) + '\n;' + extra, ctx);

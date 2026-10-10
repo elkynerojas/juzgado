@@ -4,7 +4,11 @@ import { api } from './api.js';
 export const S = {
   me: null, cfg: null,
   vista: 'tablero', filtro: null, proc: null, volverA: 'procesos',
-  gMat: null, gSit: null, gTipo: null,
+  gMat: null, gSit: null, gTipo: null, gDesde: null, gHasta: null,
+  // filtros nuevos de Procesos (v2): año, situación, ubicación y área
+  pAnio: null, pSit: null, pUbic: null, pArea: null,
+  // audiencias y estadística: rango y filtros propios
+  aDesde: null, aHasta: null, aEstado: null, aArea: null, eDesde: null, eHasta: null,
   cfgTab: null,
 };
 

@@ -10,13 +10,13 @@
 | 3. Frontend | Hecha | Pantallas originales conectadas a la API, ingreso, usuarios, roles y auditoría. Probado en navegador; falta probar impresión y exportación dentro de la ventana en Windows. |
 | 4. Respaldos | Hecha | Exportar y restaurar JSON, formato del HTML original, respaldo automático diario con rotación y respaldo previo a cada restauración. |
 | 5. Escritorio y empaquetado | Construida | Asistente Servidor/Cliente probado en la ventana real (Mac). El instalador ya se construye en Windows con `packaging\construir.ps1` (77 pruebas en verde). Falta probar en el despacho la bandeja, la impresión y la conexión entre dos equipos. |
-| 6. Verificación final | Pendiente | |
+| 6. Verificación final | Pendiente | Falta la prueba en dos equipos Windows: bandeja, impresión, las tres descargas del SIERJU dentro de la ventana y el trabajo simultáneo. |
 | 7. Modelo, migración y semillas v2 | Hecha | Migración `0002` (columnas con `add_column` directo para no disparar el borrado en cascada; datos solo si la BD ya estaba sembrada). Semillas y plantilla SIERJU extraídas de la v2 (`node scripts/extraer_semillas.mjs`). Respaldo versión 4; importa el JSON del HTML v2. 6 permisos nuevos. |
 | 8. Dominio v2 con golden | Hecha | `domain/naturaleza.py`, `domain/secretaria.py` y `domain/automatismos.py` (puro: devuelve las actuaciones nuevas; se conecta a la API en la fase 9). Ejecutorias en el tablero. Tipo SIERJU sugerido a procesos viejos al iniciar, al restaurar formatos sin el campo y al cargar ejemplos. Golden: `node scripts/generar_golden_v2.mjs`. |
-| 9. API y frontend de procesos/actuaciones v2 | Pendiente | |
-| 10. Audiencias | Pendiente | |
-| 11. Estadística SIERJU | Pendiente | |
-| 12. Ejemplos, manual y cierre v1.2 | Pendiente | |
+| 9. API y frontend de procesos/actuaciones v2 | Hecha | Esquemas con los 49 campos nuevos; automatismos y autocompletado conectados a los routers (`_aplicar_automatismos`); `/api/config/naturaleza` y `/api/config/delitos` sirven las listas; CRUD de personal; filtros de Procesos y rango en Paquetes; `ovProc`/`ovAct` dinámicos (`js/proc.js`, `js/act.js`, `js/catalogos.js`, `js/borrador.js`); CUI en plantillas. Golden de `normalizar_proceso` contra el `saveProc` real. |
+| 10. Audiencias | Hecha | `domain/audiencias.py` (estados, clases por naturaleza, causas desde las columnas SIERJU, pendientes, fijar/resolver/reprogramar) y `api/audiencias.py`. Pestaña propia con contador, panel con rango y filtros, aviso de pendientes por confirmar y los modales de fijar y resolver. Las causas mal etiquetadas de la v2 quedan rechazadas con 422. |
+| 11. Estadística SIERJU | Hecha | `domain/sierju/` (texto, secciones, clasificar, eventos, matrices) y `services/sierju_excel.py` con `zipfile`, sin dependencias nuevas. `api/estadistica.py` y la pestaña con avisos, datos especiales y las tres descargas. `js_api.guardar_binario` para el .xlsx dentro de WebView2. Golden: 5.084 comparaciones del motor difuso, 70 eventos, 23 matrices y el Excel celda por celda contra la v2. |
+| 12. Ejemplos, manual y cierre v1.2 | Hecha | Seis ejemplos nuevos (garantías con dos solicitudes, conocimiento, tutela con impugnación, desacato, hábeas corpus y un civil en trámite posterior), cuatro audiencias y dos datos especiales; `cargar_ejemplos` resuelve fechas relativas en listas anidadas. Manual operativo en `docs/manual.md`. Versión 1.2. |
 
 Cómo ver el avance: `uv run pytest` (pruebas) y `uv run control-procesos` (app). Otras opciones: `--sin-ventana` (solo servidor, para entrar por navegador), `--cliente URL`, `--reconfigurar`.
 
@@ -173,6 +173,14 @@ La v2 no cambia las reglas base (`codigo`, `ubicacion`, `vencimiento`, `estTermi
   - ruta `r_garantias` ausente en BD viejas;
   - forma de salida oculta.
 - El motor viejo de estadística no se migra.
+- **COL6828** (la columna perdida): su etiqueta trae un salto de línea dentro del paréntesis y el mapa de la
+  plantilla extraído de la v2 no la traía. Se corrigió a mano en `seed/sierju_tpl_map.json` (`H` en `SEC4603`,
+  `T` en `SEC5414`, que son los huecos de las letras) y las expresiones toleran el salto en los dos lados. Si
+  se vuelve a correr `extraer_semillas.mjs`, hay que reaplicar el parche.
+- Divergencias conscientes frente a la v2:
+  - `sync_audiencia_cancelada` solo corre al guardar el proceso, no al editar una actuación (igual que la v2).
+  - En familia, la columna de recursos se busca con "ORAL CIVIL", como hace la v2.
+  - Las ocho secciones que no están en la plantilla generan eventos y salen en la bitácora, pero no en el Excel.
 - El personal es un catálogo aparte de los usuarios.
 - Audiencias tiene pestaña propia con contador.
 - Los catálogos SIERJU y penales van en `seed/sierju.json`, de solo lectura. La plantilla oficial queda en `seed/sierju_plantilla.xlsx` y se llena con `zipfile` + XML, sin dependencias nuevas.
@@ -221,4 +229,6 @@ La v2 no cambia las reglas base (`codigo`, `ubicacion`, `vencimiento`, `estTermi
 - Los clientes requieren WebView2 (viene en Windows 10/11 actualizados; el instalador lo verifica).
 - El tráfico en la red local va por HTTP sin cifrar. Aceptable para una LAN de oficina; HTTPS con certificado propio queda como mejora.
 - Las notas del proceso dicen hoy "solo suyas"; en multiusuario quedan compartidas por proceso y protegidas por el permiso `procesos.notas`.
+- El PDF del manual todavía es el de la 1.1: el texto nuevo está en `docs/manual.md`, pero regenerar el
+  `.docx` y el PDF con capturas necesita Word o LibreOffice, que no están en este entorno.
 - Los festivos están cargados hasta 2030; se dejan editables en Configuración.
